@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Expense Tracker</title>
+  
+  <!-- Futuristic Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CLEAN SCI-FI / LIGHT FUTURISTIC THEME */
+    :root {
+      --bg-light: #F4F7FB;
+      --panel-bg: rgba(255, 255, 255, 0.85);
+      --tech-blue: #0066FF;
+      --tech-purple: #8A2BE2;
+      --tech-green: #00A344;
+      --tech-red: #E60023;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --glass-border: 1px solid rgba(0, 102, 255, 0.15);
+      --panel-shadow: 0 8px 32px rgba(0, 30, 80, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: var(--bg-light);
+      /* Light Cyber-grid background */
+      background-image: 
+        linear-gradient(rgba(0, 102, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 102, 255, 0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      color: var(--text-main);
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(20px);
+      border-left: var(--glass-border);
+      border-right: var(--glass-border);
+      box-shadow: 0 0 40px rgba(0,0,0,0.05);
+    }
+
+    /* Views Logic */
+    #auth-view, #app-view { display: none; width: 100%; height: 100%; flex-direction: column; }
+    .active-view { display: flex !important; }
+
+    /* AUTHENTICATION STYLES */
+    .auth-container {
+      margin: auto;
+      width: 90%;
+      background: var(--panel-bg);
+      padding: 2.5rem 2rem;
+      border: var(--glass-border);
+      border-radius: 12px;
+      box-shadow: var(--panel-shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .auth-header { text-align: center; margin-bottom: 2rem; }
+    .auth-header h1 { font-size: 2.2rem; color: var(--tech-blue); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .auth-header p { color: var(--text-muted); font-size: 0.95rem; font-weight: 600; letter-spacing: 1px; }
+
+    .toggle-auth { text-align: center; margin-top: 1.5rem; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; font-weight: 600; }
+    .toggle-auth span { color: var(--tech-purple); text-decoration: underline; }
+
+    #register-form { display: none; }
+
+    /* HEADER */
+    header {
+      padding: 1.5rem;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: var(--glass-border);
+    }
+
+    header h1 { font-size: 1.5rem; color: var(--tech-blue); letter-spacing: 2px; font-weight: 700; }
+    header span.user-id { font-size: 0.8rem; color: var(--tech-blue); background: rgba(0, 102, 255, 0.1); padding: 4px 8px; border-radius: 4px; font-weight: 600; }
+    .logout-btn { background: rgba(230, 0, 35, 0.1); border: 1px solid var(--tech-red); color: var(--tech-red); padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 700; border-radius: 6px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
+    .logout-btn:hover { background: var(--tech-red); color: white; box-shadow: 0 4px 12px rgba(230, 0, 35, 0.2); }
+
+    /* DASHBOARD */
+    .dashboard {
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .card { background: var(--panel-bg); border: var(--glass-border); border-radius: 12px; padding: 1.25rem; text-align: center; box-shadow: var(--panel-shadow); }
+    .card-full { grid-column: span 2; border-top: 3px solid var(--tech-purple); }
+    .card .label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem; }
+    .card .amount { font-size: 1.6rem; font-weight: 700; letter-spacing: 1px; color: var(--text-main); }
+    .card-full .amount { font-size: 2.25rem; color: var(--tech-purple); }
+    .text-income { color: var(--tech-green) !important; }
+    .text-expense { color: var(--tech-red) !important; }
+
+    /* TRANSACTIONS */
+    .transactions-wrapper { flex: 1; overflow-y: auto; padding: 0 1.5rem 6rem 1.5rem; }
+    .transactions-wrapper h3 { font-size: 1.2rem; font-weight: 700; color: var(--tech-blue); border-bottom: var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1.5px; }
+
+    .tx-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--panel-bg);
+      border: var(--glass-border);
+      border-left: 4px solid var(--tech-blue);
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      transition: all 0.2s;
+    }
+    .tx-item:hover { transform: translateX(4px); border-left-color: var(--tech-purple); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+    .tx-info h4 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.5px; color: var(--text-main); }
+    .tx-info p { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; font-weight: 500; }
+    .tx-val { font-weight: 700; font-size: 1.2rem; }
+
+    /* INPUTS & BUTTONS */
+    .input-group { margin-bottom: 1.25rem; text-align: left; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--tech-blue); text-transform: uppercase; letter-spacing: 1px; }
+    input, select {
+      width: 100%; padding: 0.8rem; background: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 8px; font-size: 1rem; color: var(--text-main); font-weight: 500; transition: all 0.3s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--tech-blue); box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1); }
+
+    .btn-submit {
+      width: 100%; padding: 1rem; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+    }
+    .btn-submit:hover { background: #0052cc; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4); }
+    .btn-submit:disabled { background: #CBD5E1; color: #94A3B8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* FAB */
+    .fab {
+      position: absolute; bottom: 2rem; right: 1.5rem; width: 64px; height: 64px; border-radius: 50%; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 2.5rem; font-weight: 400; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 102, 255, 0.4); cursor: pointer; z-index: 10; transition: all 0.2s; padding-bottom: 4px;
+    }
+    .fab:active { transform: scale(0.9); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--bg-light); width: 90%; max-width: 400px; padding: 2rem; border: var(--glass-border); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.active .modal { transform: scale(1); }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 2px solid #E2E8F0; padding-bottom: 1rem; }
+    .modal-header h2 { font-size: 1.5rem; color: var(--tech-blue); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;}
+    .close-btn { background: rgba(0,0,0,0.05); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.5rem; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: 0.2s;}
+    .close-btn:hover { background: rgba(0,0,0,0.1); color: var(--text-main); }
+
+    .loader { text-align: center; padding: 3rem 0; color: var(--tech-blue); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+    
+    #auth-error { color: var(--tech-red); text-align: center; font-size: 0.9rem; font-weight: 600; margin-top: 1rem; min-height: 1.2rem;}
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    
+    <!-- VIEW 1: AUTHENTICATION -->
+    <div id="auth-view" class="active-view">
+      <div class="auth-container">
+        <div class="auth-header">
+          <h1>EXPENSE TRACKER</h1>
+          <p>SYSTEM IDENTIFICATION REQUIRED</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form">
+          <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="login-user" required autocomplete="off">
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="login-pass" required>
+          </div>
+          <button type="submit" class="btn-submit" id="loginBtn">INITIALIZE LOGIN</button>
+          <div class="toggle-auth" onclick="toggleAuth('register')">New user? <span>Register Identity</span></div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form">
+          <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="reg-user" required autocomplete="off">
+          </div>
+          <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" required autocomplete="off">
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="reg-pass" required>
+          </div>
+          <button type="submit" class="btn-submit" id="regBtn">GENERATE IDENTITY</button>
+          <div class="toggle-auth" onclick="toggleAuth('login')">Existing user? <span>Initialize Login</span></div>
+        </form>
+        
+        <div id="auth-error"></div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: MAIN DASHBOARD -->
+    <div id="app-view">
+      <header>
+        <div>
+          <h1>EXPENSE TRACKER</h1>
+          <span class="user-id" id="display-user">ID: NULL</span>
+        </div>
+        <button class="logout-btn" onclick="logout()">Terminate</button>
+      </header>
+
+      <div class="dashboard">
+        <div class="card card-full">
+          <div class="label">Net Assets</div>
+          <div class="amount" id="dom-balance">₱0.00</div>
+        </div>
+        <div class="card">
+          <div class="label">Inflow</div>
+          <div class="amount text-income" id="dom-income">₱0.00</div>
+        </div>
+        <div class="card">
+          <div class="label">Outflow</div>
+          <div class="amount text-expense" id="dom-expense">₱0.00</div>
+        </div>
+      </div>
+
+      <div class="transactions-wrapper">
+        <h3>Data Log</h3>
+        <div id="loader" class="loader">ESTABLISHING CONNECTION...</div>
+        <div id="tx-list"></div>
+      </div>
+
+      <button class="fab" id="openModalBtn">+</button>
+
+      <!-- Modal -->
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 id="modalTitle">New Entry</h2>
+            <button class="close-btn" id="closeModalBtn">&times;</button>
+          </div>
+          <form id="txForm">
+            <div class="input-group">
+              <label>Flow Type</label>
+              <select id="type" required>
+                <option value="expense">Outflow (Expense)</option>
+                <option value="income">Inflow (Income)</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Amount (PHP)</label>
+              <input type="number" id="amount" step="0.01" placeholder="0.00" required>
+            </div>
+            <div class="input-group">
+              <label>Identifier Node (Category)</label>
+              <input type="text" id="category" placeholder="e.g. Server Cost, Salary" required>
+            </div>
+            <div class="input-group">
+              <label>Timestamp</label>
+              <input type="date" id="date" required>
+            </div>
+            <button type="submit" class="btn-submit" id="submitBtn">TRANSMIT DATA</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- PASTE YOUR NEW APP SCRIPT URL HERE ---
+    const API_URL = "https://script.google.com/macros/s/AKfycbw2oYnJ_Y4xKtLtBi7_FUH35XB6gGWwe-zd-xdVv783oL9wIzzovUZ5QIr_dbdP-_6z/exec";
+
+    // --- STATE MANAGEMENT ---
+    let currentUserNumber = localStorage.getItem('neoUserNumber') || null;
+    let currentUsername = localStorage.getItem('neoUsername') || null;
+    let transactions = [];
+    let editingRowNumber = null;
+
+    // --- DOM ELEMENTS ---
+    const authView = document.getElementById('auth-view');
+    const appView = document.getElementById('app-view');
+    const loginForm = document.getElementById('login-form');
+    const regForm = document.getElementById('register-form');
+    const authError = document.getElementById('auth-error');
+    const displayUser = document.getElementById('display-user');
+
+    // --- INIT ---
+    if (currentUserNumber) {
+      showApp();
+    }
+
+    function toggleAuth(type) {
+      authError.textContent = "";
+      if(type === 'register') {
+        loginForm.style.display = 'none';
+        regForm.style.display = 'block';
+      } else {
+        regForm.style.display = 'none';
+        loginForm.style.display = 'block';
+      }
+    }
+
+    function showApp() {
+      authView.classList.remove('active-view');
+      appView.classList.add('active-view');
+      displayUser.textContent = `USR: ${currentUsername} [${currentUserNumber}]`;
+      loadData();
+    }
+
+    function logout() {
+      localStorage.removeItem('neoUserNumber');
+      localStorage.removeItem('neoUsername');
+      currentUserNumber = null;
+      currentUsername = null;
+      transactions = [];
+      appView.classList.remove('active-view');
+      authView.classList.add('active-view');
+      document.getElementById('tx-list').innerHTML = '';
+      authError.textContent = "Session Terminated.";
+    }
+
+    // --- AUTHENTICATION LOGIC ---
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      btn.textContent = "AUTHENTICATING..."; btn.disabled = true; authError.textContent = "";
+      
+      const payload = {
+        action: 'login',
+        username: document.getElementById('login-user').value,
+        password: document.getElementById('login-pass').value
+      };
+
+      try {
+        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        const json = await res.json();
+        if(json.result === 'success') {
+          currentUserNumber = json.userNumber;
+          currentUsername = json.username;
+          localStorage.setItem('neoUserNumber', currentUserNumber);
+          localStorage.setItem('neoUsername', currentUsername);
+          loginForm.reset();
+          showApp();
+        } else {
+          authError.textContent = "ACCESS DENIED: " + json.error;
+        }
+      } catch (err) { authError.textContent = "CONNECTION FAILURE"; }
+      btn.textContent = "INITIALIZE LOGIN"; btn.disabled = false;
+    };
+
+    regForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('regBtn');
+      btn.textContent = "GENERATING..."; btn.disabled = true; authError.textContent = "";
+      
+      const payload = {
+        action: 'register',
+        username: document.getElementById('reg-user').value,
+        email: document.getElementById('reg-email').value,
+        password: document.getElementById('reg-pass').value
+      };
+
+      try {
+        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        const json = await res.json();
+        if(json.result === 'success') {
+          currentUserNumber = json.userNumber;
+          currentUsername = json.username;
+          localStorage.setItem('neoUserNumber', currentUserNumber);
+          localStorage.setItem('neoUsername', currentUsername);
+          regForm.reset();
+          showApp();
+        } else { authError.textContent = "ERROR: " + json.error; }
+      } catch (err) { authError.textContent = "CONNECTION FAILURE"; }
+      btn.textContent = "GENERATE IDENTITY"; btn.disabled = false;
+    };
+
+    // --- APP LOGIC ---
+    function formatMoney(amount) {
+      return "₱" + parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    async function loadData() {
+      const loader = document.getElementById('loader');
+      loader.style.display = 'block';
+      try {
+        const response = await fetch(API_URL + "?userNumber=" + currentUserNumber);
+        const json = await response.json();
+        if(json.result === "success") {
+          transactions = json.data;
+          renderApp();
+        }
+      } catch (err) { loader.textContent = "SYNC FAILED."; }
+    }
+
+    function renderApp() {
+      document.getElementById('loader').style.display = 'none';
+      let totalIn = 0, totalOut = 0;
+      const txList = document.getElementById('tx-list');
+      txList.innerHTML = '';
+
+      const displayData = [...transactions].reverse();
+
+      displayData.forEach(tx => {
+        const amount = parseFloat(tx.amount) || 0;
+        const isIncome = tx.type === 'income';
+        if(isIncome) totalIn += amount; else totalOut += amount;
+
+        let displayDate = tx.date;
+        try { displayDate = new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch(e){}
+
+        const div = document.createElement('div');
+        div.className = 'tx-item';
+        div.onclick = () => openEditModal(tx);
+        div.innerHTML = `
+          <div class="tx-info">
+            <h4>${tx.category}</h4>
+            <p>${displayDate}</p>
+          </div>
+          <div class="tx-val ${isIncome ? 'text-income' : 'text-expense'}">
+            ${isIncome ? '+' : '-'}${formatMoney(amount)}
+          </div>
+        `;
+        txList.appendChild(div);
+      });
+
+      document.getElementById('dom-income').textContent = formatMoney(totalIn);
+      document.getElementById('dom-expense').textContent = formatMoney(totalOut);
+      document.getElementById('dom-balance').textContent = formatMoney(totalIn - totalOut);
+    }
+
+    // --- MODAL LOGIC ---
+    const modalOverlay = document.getElementById('modalOverlay');
+    const form = document.getElementById('txForm');
+    
+    document.getElementById('openModalBtn').onclick = () => {
+      editingRowNumber = null;
+      form.reset();
+      document.getElementById('date').valueAsDate = new Date();
+      document.getElementById('modalTitle').textContent = "NEW ENTRY";
+      modalOverlay.classList.add('active');
+    };
+
+    function openEditModal(tx) {
+      editingRowNumber = tx.rowNumber;
+      document.getElementById('modalTitle').textContent = "MODIFY ENTRY";
+      document.getElementById('type').value = tx.type;
+      document.getElementById('amount').value = tx.amount;
+      document.getElementById('category').value = tx.category;
+      try {
+        const d = new Date(tx.date);
+        document.getElementById('date').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      } catch(e) {}
+      modalOverlay.classList.add('active');
+    }
+
+    document.getElementById('closeModalBtn').onclick = () => modalOverlay.classList.remove('active');
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const isEditing = editingRowNumber !== null;
+      btn.textContent = "TRANSMITTING..."; btn.disabled = true;
+
+      const payload = {
+        action: isEditing ? 'edit' : 'add',
+        userNumber: currentUserNumber,
+        rowNumber: editingRowNumber,
+        type: document.getElementById('type').value,
+        amount: parseFloat(document.getElementById('amount').value),
+        category: document.getElementById('category').value,
+        description: "",
+        date: document.getElementById('date').value
+      };
+
+      try {
+        await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        await loadData();
+        form.reset();
+        modalOverlay.classList.remove('active');
+      } catch (err) { alert("Transmission Error."); } 
+      finally { btn.textContent = "TRANSMIT DATA"; btn.disabled = false; }
+    };
+  </script>
+</body>
+</html>

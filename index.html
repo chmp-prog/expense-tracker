@@ -29,7 +29,6 @@
 
     body {
       background-color: var(--bg-light);
-      /* Light Cyber-grid background */
       background-image: 
         linear-gradient(rgba(0, 102, 255, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 102, 255, 0.05) 1px, transparent 1px);
@@ -55,11 +54,9 @@
       box-shadow: 0 0 40px rgba(0,0,0,0.05);
     }
 
-    /* Views Logic */
     #auth-view, #app-view { display: none; width: 100%; height: 100%; flex-direction: column; }
     .active-view { display: flex !important; }
 
-    /* AUTHENTICATION STYLES */
     .auth-container {
       margin: auto;
       width: 90%;
@@ -80,7 +77,6 @@
 
     #register-form { display: none; }
 
-    /* HEADER */
     header {
       padding: 1.5rem;
       background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%);
@@ -95,7 +91,6 @@
     .logout-btn { background: rgba(230, 0, 35, 0.1); border: 1px solid var(--tech-red); color: var(--tech-red); padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 700; border-radius: 6px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
     .logout-btn:hover { background: var(--tech-red); color: white; box-shadow: 0 4px 12px rgba(230, 0, 35, 0.2); }
 
-    /* DASHBOARD */
     .dashboard {
       padding: 1.5rem;
       display: grid;
@@ -111,7 +106,6 @@
     .text-income { color: var(--tech-green) !important; }
     .text-expense { color: var(--tech-red) !important; }
 
-    /* TRANSACTIONS */
     .transactions-wrapper { flex: 1; overflow-y: auto; padding: 0 1.5rem 6rem 1.5rem; }
     .transactions-wrapper h3 { font-size: 1.2rem; font-weight: 700; color: var(--tech-blue); border-bottom: var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1.5px; }
 
@@ -135,13 +129,15 @@
     .tx-info p { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; font-weight: 500; }
     .tx-val { font-weight: 700; font-size: 1.2rem; }
 
-    /* INPUTS & BUTTONS */
     .input-group { margin-bottom: 1.25rem; text-align: left; }
     label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--tech-blue); text-transform: uppercase; letter-spacing: 1px; }
     input, select {
       width: 100%; padding: 0.8rem; background: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 8px; font-size: 1rem; color: var(--text-main); font-weight: 500; transition: all 0.3s;
     }
     input:focus, select:focus { outline: none; border-color: var(--tech-blue); box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1); }
+    
+    /* Specific styling to center the PIN text */
+    #login-pin, #reg-pin { letter-spacing: 3px; font-size: 1.2rem; }
 
     .btn-submit {
       width: 100%; padding: 1rem; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
@@ -149,13 +145,11 @@
     .btn-submit:hover { background: #0052cc; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4); }
     .btn-submit:disabled { background: #CBD5E1; color: #94A3B8; cursor: not-allowed; box-shadow: none; transform: none; }
 
-    /* FAB */
     .fab {
       position: absolute; bottom: 2rem; right: 1.5rem; width: 64px; height: 64px; border-radius: 50%; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 2.5rem; font-weight: 400; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 102, 255, 0.4); cursor: pointer; z-index: 10; transition: all 0.2s; padding-bottom: 4px;
     }
     .fab:active { transform: scale(0.9); }
 
-    /* MODAL */
     .modal-overlay {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.3s;
     }
@@ -196,8 +190,9 @@
             <input type="text" id="login-user" required autocomplete="off">
           </div>
           <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="login-pass" required>
+            <label>PIN Code</label>
+            <!-- inputmode="numeric" and pattern pop open the phone's number pad! -->
+            <input type="password" id="login-pin" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
           </div>
           <button type="submit" class="btn-submit" id="loginBtn">INITIALIZE LOGIN</button>
           <div class="toggle-auth" onclick="toggleAuth('register')">New user? <span>Register Identity</span></div>
@@ -214,8 +209,8 @@
             <input type="email" id="reg-email" required autocomplete="off">
           </div>
           <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="reg-pass" required>
+            <label>Create PIN</label>
+            <input type="password" id="reg-pin" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
           </div>
           <button type="submit" class="btn-submit" id="regBtn">GENERATE IDENTITY</button>
           <div class="toggle-auth" onclick="toggleAuth('login')">Existing user? <span>Initialize Login</span></div>
@@ -297,13 +292,11 @@
     // --- PASTE YOUR NEW APP SCRIPT URL HERE ---
     const API_URL = "https://script.google.com/macros/s/AKfycbw2oYnJ_Y4xKtLtBi7_FUH35XB6gGWwe-zd-xdVv783oL9wIzzovUZ5QIr_dbdP-_6z/exec";
 
-    // --- STATE MANAGEMENT ---
     let currentUserNumber = localStorage.getItem('neoUserNumber') || null;
     let currentUsername = localStorage.getItem('neoUsername') || null;
     let transactions = [];
     let editingRowNumber = null;
 
-    // --- DOM ELEMENTS ---
     const authView = document.getElementById('auth-view');
     const appView = document.getElementById('app-view');
     const loginForm = document.getElementById('login-form');
@@ -311,10 +304,7 @@
     const authError = document.getElementById('auth-error');
     const displayUser = document.getElementById('display-user');
 
-    // --- INIT ---
-    if (currentUserNumber) {
-      showApp();
-    }
+    if (currentUserNumber) { showApp(); }
 
     function toggleAuth(type) {
       authError.textContent = "";
@@ -346,7 +336,7 @@
       authError.textContent = "Session Terminated.";
     }
 
-    // --- AUTHENTICATION LOGIC ---
+    // --- LOGIN (NOW USING PIN) ---
     loginForm.onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('loginBtn');
@@ -355,7 +345,7 @@
       const payload = {
         action: 'login',
         username: document.getElementById('login-user').value,
-        password: document.getElementById('login-pass').value
+        pin: document.getElementById('login-pin').value // Swapped password for PIN
       };
 
       try {
@@ -375,6 +365,7 @@
       btn.textContent = "INITIALIZE LOGIN"; btn.disabled = false;
     };
 
+    // --- REGISTER (NOW USING PIN) ---
     regForm.onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('regBtn');
@@ -384,7 +375,7 @@
         action: 'register',
         username: document.getElementById('reg-user').value,
         email: document.getElementById('reg-email').value,
-        password: document.getElementById('reg-pass').value
+        pin: document.getElementById('reg-pin').value // Swapped password for PIN
       };
 
       try {
@@ -402,7 +393,6 @@
       btn.textContent = "GENERATE IDENTITY"; btn.disabled = false;
     };
 
-    // --- APP LOGIC ---
     function formatMoney(amount) {
       return "₱" + parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
@@ -456,7 +446,6 @@
       document.getElementById('dom-balance').textContent = formatMoney(totalIn - totalOut);
     }
 
-    // --- MODAL LOGIC ---
     const modalOverlay = document.getElementById('modalOverlay');
     const form = document.getElementById('txForm');
     

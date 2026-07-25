@@ -57,7 +57,8 @@
       box-shadow: 0 0 40px rgba(0,0,0,0.05);
     }
 
-    #auth-view, #app-view { display: none; width: 100%; height: 100%; flex-direction: column; }
+    #auth-view { display: none; width: 100%; height: 100%; flex-direction: column; overflow-y: auto; }
+    #app-view { display: none; width: 100%; height: 100%; flex-direction: column; overflow: hidden; position: relative; }
     .active-view { display: flex !important; }
 
     /* AUTH */
@@ -71,7 +72,7 @@
     #register-form { display: none; }
 
     /* HEADER */
-    header { padding: 1rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: var(--glass-border); z-index: 5; }
+    header { padding: 1rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: var(--glass-border); z-index: 5; flex-shrink: 0; }
     header h1 { font-size: 1.3rem; color: var(--tech-blue); letter-spacing: 1px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     
     .brand-logo-wrapper {
@@ -85,8 +86,8 @@
       filter: drop-shadow(0px 2px 4px rgba(0, 102, 255, 0.2));
     }
 
-    /* TAB SCREENS */
-    .app-body { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; padding-bottom: 5.5rem; }
+    /* TAB SCREENS & SCROLL AREA */
+    .app-body { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; position: relative; }
     .tab-pane { display: none; flex-direction: column; gap: 1rem; }
     .tab-pane.active { display: flex; }
 
@@ -254,13 +255,10 @@
     .logout-btn { width: 100%; background: rgba(230, 0, 35, 0.1); border: 1px solid var(--tech-red); color: var(--tech-red); padding: 0.85rem; font-size: 0.95rem; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; margin-top: 1rem; }
     .logout-btn:hover { background: var(--tech-red); color: white; }
 
-    /* BOTTOM NAV TAB BAR */
+    /* FIXED ALWAYS VISIBLE BOTTOM NAV TAB BAR */
     .nav-tabs {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
       height: 60px;
+      width: 100%;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
       border-top: var(--glass-border);
@@ -268,6 +266,7 @@
       justify-content: space-around;
       align-items: center;
       z-index: 15;
+      flex-shrink: 0;
     }
     .nav-btn {
       background: none;
@@ -438,10 +437,10 @@
               <div class="filter-collapsible-body">
                 <div class="filter-header">Timeframe Filter</div>
                 <div class="filter-presets" id="timeframePresets">
-                  <button class="filter-chip active" onclick="setPresetFilter('all', this)">All</button>
+                  <button class="filter-chip" onclick="setPresetFilter('all', this)">All</button>
                   <button class="filter-chip" onclick="setPresetFilter('day', this)">Today</button>
                   <button class="filter-chip" onclick="setPresetFilter('week', this)">This Week</button>
-                  <button class="filter-chip" onclick="setPresetFilter('month', this)">This Month</button>
+                  <button class="filter-chip active" onclick="setPresetFilter('month', this)">This Month</button>
                   <button class="filter-chip" onclick="setPresetFilter('custom', this)">Custom...</button>
                 </div>
 
@@ -538,7 +537,7 @@
 
       </div>
 
-      <!-- BOTTOM NAVIGATION TABS BAR -->
+      <!-- BOTTOM NAVIGATION TABS BAR (ALWAYS VISIBLE) -->
       <div class="nav-tabs">
         <button class="nav-btn active" onclick="switchTab('home-tab', this)">
           <span class="icon">🏠</span>
@@ -632,7 +631,9 @@
 
     let editingRowNumber = null;
     let chartInstance = null;
-    let activeFilterMode = 'all';
+    
+    // UPDATED DEFAULTS: Timeframe defaults to 'month', Flow Type defaults to 'all'
+    let activeFilterMode = 'month';
     let activeTypeFilterMode = 'all';
 
     // PAGINATION CONTROLS
@@ -884,7 +885,7 @@
       const filtered = getFilteredTransactions();
       const displayData = [...filtered].reverse();
 
-      // Apply pagination to ALL filters
+      // Apply pagination to filtered items
       const visibleData = displayData.slice(0, visibleCount);
 
       if (displayData.length > visibleCount) {
@@ -919,16 +920,26 @@
         txList.appendChild(div);
       });
 
-      // Calculate totals for all matching items in the active filter
+      // 1) Filtered Totals for Inflow & Outflow
       let fullIn = 0, fullOut = 0;
       displayData.forEach(tx => {
         const amt = parseFloat(tx.amount) || 0;
         if(tx.type === 'income') fullIn += amt; else fullOut += amt;
       });
 
+      // 2) Unfiltered Total Available Balance calculation across ALL user transactions
+      let totalAllIncome = 0;
+      let totalAllExpense = 0;
+      transactions.forEach(tx => {
+        const amt = parseFloat(tx.amount) || 0;
+        if(tx.type === 'income') totalAllIncome += amt;
+        else if(tx.type === 'expense') totalAllExpense += amt;
+      });
+
       document.getElementById('dom-income').textContent = formatMoney(fullIn);
       document.getElementById('dom-expense').textContent = formatMoney(fullOut);
-      document.getElementById('dom-balance').textContent = formatMoney(fullIn - fullOut);
+      // Available Balance stays static regardless of active filters!
+      document.getElementById('dom-balance').textContent = formatMoney(totalAllIncome - totalAllExpense);
     }
 
     // --- BUDGET PACING & GRAPH CALCULATION ---

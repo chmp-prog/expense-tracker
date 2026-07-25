@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Expense Tracker</title>
+  <title>Expense Tracker & Budget Pacer</title>
   
-  <!-- Futuristic Font -->
+  <!-- Browser Tab Favicon (Money Icon) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230066FF'/><circle cx='50' cy='50' r='30' fill='%2300A344'/><path d='M50 30v40M40 38h20M40 62h20M57 39c0 0-14-2-14 8c0 10 14 10 14 20c0 10-14 8-14 8' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round'/></svg>">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
-    /* CLEAN SCI-FI / LIGHT FUTURISTIC THEME */
     :root {
       --bg-light: #F4F7FB;
       --panel-bg: rgba(255, 255, 255, 0.85);
@@ -57,117 +60,262 @@
     #auth-view, #app-view { display: none; width: 100%; height: 100%; flex-direction: column; }
     .active-view { display: flex !important; }
 
-    .auth-container {
-      margin: auto;
-      width: 90%;
-      background: var(--panel-bg);
-      padding: 2.5rem 2rem;
-      border: var(--glass-border);
-      border-radius: 12px;
-      box-shadow: var(--panel-shadow);
-      backdrop-filter: blur(10px);
-    }
-
+    /* AUTH */
+    .auth-container { margin: auto; width: 90%; background: var(--panel-bg); padding: 2.5rem 2rem; border: var(--glass-border); border-radius: 12px; box-shadow: var(--panel-shadow); backdrop-filter: blur(10px); }
     .auth-header { text-align: center; margin-bottom: 2rem; }
+    .auth-logo { width: 64px; height: 64px; margin: 0 auto 0.75rem auto; display: block; }
     .auth-header h1 { font-size: 2.2rem; color: var(--tech-blue); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
     .auth-header p { color: var(--text-muted); font-size: 0.95rem; font-weight: 600; letter-spacing: 1px; }
-
     .toggle-auth { text-align: center; margin-top: 1.5rem; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; font-weight: 600; }
     .toggle-auth span { color: var(--tech-purple); text-decoration: underline; }
-
     #register-form { display: none; }
 
-    header {
-      padding: 1.5rem;
-      background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%);
+    /* HEADER */
+    header { padding: 1rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: var(--glass-border); z-index: 5; }
+    header h1 { font-size: 1.3rem; color: var(--tech-blue); letter-spacing: 1px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    
+    .brand-logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-svg-logo {
+      width: 32px;
+      height: 32px;
+      filter: drop-shadow(0px 2px 4px rgba(0, 102, 255, 0.2));
+    }
+
+    /* TAB SCREENS */
+    .app-body { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; padding-bottom: 5.5rem; }
+    .tab-pane { display: none; flex-direction: column; gap: 1rem; }
+    .tab-pane.active { display: flex; }
+
+    /* DASHBOARD CARDS */
+    .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .card { background: var(--panel-bg); border: var(--glass-border); border-radius: 12px; padding: 1rem; text-align: center; box-shadow: var(--panel-shadow); position: relative; }
+    .card-full { grid-column: span 2; border-top: 3px solid var(--tech-purple); }
+    .card .label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; }
+    .card .amount { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; color: var(--text-main); }
+    .card-full .amount { font-size: 2rem; color: var(--tech-purple); }
+
+    /* EXPANDABLE FILTER SECTION */
+    .filter-section {
+      background: var(--panel-bg);
+      border: var(--glass-border);
+      border-radius: 12px;
+      padding: 0.85rem;
+      box-shadow: var(--panel-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .filter-toggle-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: var(--glass-border);
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .filter-toggle-header .filter-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--tech-blue);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    header h1 { font-size: 1.5rem; color: var(--tech-blue); letter-spacing: 2px; font-weight: 700; }
-    header span.user-id { font-size: 0.8rem; color: var(--tech-blue); background: rgba(0, 102, 255, 0.1); padding: 4px 8px; border-radius: 4px; font-weight: 600; }
-    .logout-btn { background: rgba(230, 0, 35, 0.1); border: 1px solid var(--tech-red); color: var(--tech-red); padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 700; border-radius: 6px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
-    .logout-btn:hover { background: var(--tech-red); color: white; box-shadow: 0 4px 12px rgba(230, 0, 35, 0.2); }
-
-    .dashboard {
-      padding: 1.5rem;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+    .filter-toggle-btn {
+      background: rgba(0, 102, 255, 0.08);
+      border: 1px solid rgba(0, 102, 255, 0.2);
+      color: var(--tech-blue);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 12px;
+      transition: all 0.2s ease;
     }
 
-    .card { background: var(--panel-bg); border: var(--glass-border); border-radius: 12px; padding: 1.25rem; text-align: center; box-shadow: var(--panel-shadow); }
-    .card-full { grid-column: span 2; border-top: 3px solid var(--tech-purple); }
-    .card .label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem; }
-    .card .amount { font-size: 1.6rem; font-weight: 700; letter-spacing: 1px; color: var(--text-main); }
-    .card-full .amount { font-size: 2.25rem; color: var(--tech-purple); }
+    .filter-collapsible-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-top: 0.25rem;
+    }
+
+    .filter-section.collapsed .filter-collapsible-body {
+      display: none;
+    }
+
+    .filter-header { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .filter-presets { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .filter-chip {
+      background: rgba(0, 102, 255, 0.08);
+      border: 1px solid rgba(0, 102, 255, 0.2);
+      color: var(--text-main);
+      padding: 0.35rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+    }
+    .filter-chip.active {
+      background: var(--tech-blue);
+      color: #FFFFFF;
+      border-color: var(--tech-blue);
+    }
+    .filter-chip.chip-income.active {
+      background: var(--tech-green);
+      border-color: var(--tech-green);
+    }
+    .filter-chip.chip-expense.active {
+      background: var(--tech-red);
+      border-color: var(--tech-red);
+    }
+    .custom-date-controls {
+      display: none;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+    .custom-date-controls.active { display: grid; }
+    .custom-date-controls select { padding: 0.4rem 0.5rem; font-size: 0.85rem; font-weight: 600; }
+
+    /* BUDGET PACING CARD & CHART */
+    .budget-pacing-card { background: var(--panel-bg); border: var(--glass-border); border-radius: 12px; padding: 1rem; box-shadow: var(--panel-shadow); border-top: 3px solid var(--tech-blue); }
+    .budget-pacing-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .budget-pacing-header h3 { font-size: 1.05rem; font-weight: 700; color: var(--tech-blue); text-transform: uppercase; letter-spacing: 1px; }
+    
+    .edit-budget-btn {
+      background: rgba(0, 102, 255, 0.1);
+      border: 1px solid var(--tech-blue);
+      color: var(--tech-blue);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .edit-budget-btn:hover { background: var(--tech-blue); color: #FFFFFF; }
+
+    .budget-metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; text-align: center; margin-bottom: 1rem; }
+    .metric-box { background: rgba(255,255,255,0.7); padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); }
+    .metric-box .m-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .metric-box .m-val { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
+
+    .chart-container { width: 100%; height: 240px; position: relative; }
+
+    /* TRANSACTIONS & PAGINATION */
+    .transactions-wrapper h3 { font-size: 1.1rem; font-weight: 700; color: var(--tech-blue); border-bottom: var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; }
+    .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: var(--panel-bg); border: var(--glass-border); border-left: 4px solid var(--tech-blue); border-radius: 8px; margin-bottom: 0.6rem; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s; }
+    .tx-item:hover { transform: translateX(4px); border-left-color: var(--tech-purple); }
+    .tx-info h4 { font-size: 1rem; font-weight: 600; color: var(--text-main); }
+    .tx-info p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.1rem; font-weight: 500; }
+    .tx-val { font-weight: 700; font-size: 1.1rem; white-space: nowrap; margin-left: 0.5rem; }
     .text-income { color: var(--tech-green) !important; }
     .text-expense { color: var(--tech-red) !important; }
 
-    .transactions-wrapper { flex: 1; overflow-y: auto; padding: 0 1.5rem 6rem 1.5rem; }
-    .transactions-wrapper h3 { font-size: 1.2rem; font-weight: 700; color: var(--tech-blue); border-bottom: var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1.5px; }
-
-    .tx-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: var(--panel-bg);
-      border: var(--glass-border);
-      border-left: 4px solid var(--tech-blue);
+    .load-more-btn {
+      width: 100%;
+      background: rgba(0, 102, 255, 0.08);
+      border: 1px solid var(--tech-blue);
+      color: var(--tech-blue);
+      padding: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 700;
       border-radius: 8px;
-      margin-bottom: 0.75rem;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s ease;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .load-more-btn:hover { background: var(--tech-blue); color: white; }
+
+    /* SETTINGS PANEL */
+    .settings-panel { background: var(--panel-bg); border: var(--glass-border); border-radius: 12px; padding: 1.25rem; box-shadow: var(--panel-shadow); display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-section-title { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; letter-spacing: 1px; text-transform: uppercase; }
+    
+    .cat-list { list-style: none; margin-top: 0.5rem; margin-bottom: 1rem; }
+    .cat-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border: var(--glass-border); border-radius: 6px; margin-bottom: 0.5rem; font-weight: 600; }
+    .del-cat-btn { background: rgba(230, 0, 35, 0.1); border: none; color: var(--tech-red); width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .del-cat-btn:hover { background: var(--tech-red); color: white; }
+
+    .logout-btn { width: 100%; background: rgba(230, 0, 35, 0.1); border: 1px solid var(--tech-red); color: var(--tech-red); padding: 0.85rem; font-size: 0.95rem; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; margin-top: 1rem; }
+    .logout-btn:hover { background: var(--tech-red); color: white; }
+
+    /* BOTTOM NAV TAB BAR */
+    .nav-tabs {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: var(--glass-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 15;
+    }
+    .nav-btn {
+      background: none;
+      border: none;
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
       transition: all 0.2s;
     }
-    .tx-item:hover { transform: translateX(4px); border-left-color: var(--tech-purple); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .nav-btn .icon { font-size: 1.2rem; }
+    .nav-btn.active { color: var(--tech-blue); }
 
-    .tx-info h4 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.5px; color: var(--text-main); }
-    .tx-info p { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; font-weight: 500; }
-    .tx-val { font-weight: 700; font-size: 1.2rem; }
-
-    .input-group { margin-bottom: 1.25rem; text-align: left; }
+    /* INPUTS & BUTTONS */
+    .input-group { margin-bottom: 1rem; text-align: left; }
+    .input-group.flex { display: flex; gap: 10px; }
     label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--tech-blue); text-transform: uppercase; letter-spacing: 1px; }
-    input, select {
-      width: 100%; padding: 0.8rem; background: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 8px; font-size: 1rem; color: var(--text-main); font-weight: 500; transition: all 0.3s;
-    }
+    input, select { width: 100%; padding: 0.8rem; background: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 8px; font-size: 1rem; color: var(--text-main); font-weight: 500; transition: all 0.3s; }
     input:focus, select:focus { outline: none; border-color: var(--tech-blue); box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1); }
-    
-    /* Specific styling to center the PIN text */
     #login-pin, #reg-pin { letter-spacing: 3px; font-size: 1.2rem; }
 
-    .btn-submit {
-      width: 100%; padding: 1rem; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
-    }
-    .btn-submit:hover { background: #0052cc; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4); }
-    .btn-submit:disabled { background: #CBD5E1; color: #94A3B8; cursor: not-allowed; box-shadow: none; transform: none; }
+    .btn-submit { width: 100%; padding: 1rem; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3); }
+    .btn-submit:hover { background: #0052cc; transform: translateY(-2px); }
+    .btn-submit:disabled { background: #CBD5E1; color: #94A3B8; cursor: not-allowed; }
 
-    .fab {
-      position: absolute; bottom: 2rem; right: 1.5rem; width: 64px; height: 64px; border-radius: 50%; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 2.5rem; font-weight: 400; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 102, 255, 0.4); cursor: pointer; z-index: 10; transition: all 0.2s; padding-bottom: 4px;
-    }
+    .fab { position: absolute; bottom: 4.5rem; right: 1.25rem; width: 56px; height: 56px; border-radius: 50%; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 2rem; font-weight: 400; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 102, 255, 0.4); cursor: pointer; z-index: 10; transition: all 0.2s; padding-bottom: 4px; }
     .fab:active { transform: scale(0.9); }
 
-    .modal-overlay {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-    }
+    /* MODALS */
+    .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .modal-overlay.active { opacity: 1; pointer-events: all; }
-
-    .modal {
-      background: var(--bg-light); width: 90%; max-width: 400px; padding: 2rem; border: var(--glass-border); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    .modal { background: var(--bg-light); width: 90%; max-width: 400px; padding: 2rem; border: var(--glass-border); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto;}
     .modal-overlay.active .modal { transform: scale(1); }
-
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 2px solid #E2E8F0; padding-bottom: 1rem; }
-    .modal-header h2 { font-size: 1.5rem; color: var(--tech-blue); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;}
-    .close-btn { background: rgba(0,0,0,0.05); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.5rem; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: 0.2s;}
-    .close-btn:hover { background: rgba(0,0,0,0.1); color: var(--text-main); }
+    .modal-header h2 { font-size: 1.4rem; color: var(--tech-blue); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;}
+    .close-btn { background: rgba(0,0,0,0.05); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.5rem; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
 
     .loader { text-align: center; padding: 3rem 0; color: var(--tech-blue); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-    
     #auth-error { color: var(--tech-red); text-align: center; font-size: 0.9rem; font-weight: 600; margin-top: 1rem; min-height: 1.2rem;}
   </style>
 </head>
@@ -179,11 +327,25 @@
     <div id="auth-view" class="active-view">
       <div class="auth-container">
         <div class="auth-header">
+          <!-- AUTH LOGO -->
+          <svg class="auth-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="shieldGradAuth" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0066FF" />
+                <stop offset="100%" stop-color="#8A2BE2" />
+              </linearGradient>
+              <linearGradient id="coinGradAuth" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00A344" />
+                <stop offset="100%" stop-color="#00E676" />
+              </linearGradient>
+            </defs>
+            <path d="M 100 15 L 170 38 V 100 C 170 145 100 185 100 185 C 100 185 30 145 30 100 V 38 Z" fill="url(#shieldGradAuth)"/>
+            <circle cx="100" cy="95" r="40" fill="url(#coinGradAuth)" />
+            <path d="M 100 70 V 120 M 88 80 H 112 M 88 110 H 112 M 108 82 C 108 82 92 78 92 90 C 92 102 108 102 108 112 C 108 122 92 118 92 118" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
           <h1>EXPENSE TRACKER</h1>
-          <p>SYSTEM IDENTIFICATION REQUIRED</p>
+          <p>SYSTEM IDENTIFICATION</p>
         </div>
-
-        <!-- Login Form -->
         <form id="login-form">
           <div class="input-group">
             <label>Username</label>
@@ -191,14 +353,11 @@
           </div>
           <div class="input-group">
             <label>PIN Code</label>
-            <!-- inputmode="numeric" and pattern pop open the phone's number pad! -->
             <input type="password" id="login-pin" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
           </div>
           <button type="submit" class="btn-submit" id="loginBtn">INITIALIZE LOGIN</button>
           <div class="toggle-auth" onclick="toggleAuth('register')">New user? <span>Register Identity</span></div>
         </form>
-
-        <!-- Register Form -->
         <form id="register-form">
           <div class="input-group">
             <label>Username</label>
@@ -215,45 +374,189 @@
           <button type="submit" class="btn-submit" id="regBtn">GENERATE IDENTITY</button>
           <div class="toggle-auth" onclick="toggleAuth('login')">Existing user? <span>Initialize Login</span></div>
         </form>
-        
         <div id="auth-error"></div>
       </div>
     </div>
 
-    <!-- VIEW 2: MAIN DASHBOARD -->
+    <!-- VIEW 2: MAIN APP WITH TABS -->
     <div id="app-view">
       <header>
-        <div>
+        <div class="brand-logo-wrapper">
+          <!-- HEADER SVG MONEY ICON -->
+          <svg class="brand-svg-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0066FF" />
+                <stop offset="100%" stop-color="#8A2BE2" />
+              </linearGradient>
+              <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00A344" />
+                <stop offset="100%" stop-color="#00E676" />
+              </linearGradient>
+            </defs>
+            <path d="M 100 15 L 170 38 V 100 C 170 145 100 185 100 185 C 100 185 30 145 30 100 V 38 Z" fill="url(#shieldGrad)"/>
+            <circle cx="100" cy="95" r="40" fill="url(#coinGrad)" />
+            <path d="M 100 70 V 120 M 88 80 H 112 M 88 110 H 112 M 108 82 C 108 82 92 78 92 90 C 92 102 108 102 108 112 C 108 122 92 118 92 118" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
           <h1>EXPENSE TRACKER</h1>
-          <span class="user-id" id="display-user">ID: NULL</span>
         </div>
-        <button class="logout-btn" onclick="logout()">Terminate</button>
+        <span class="user-id" id="display-user">ID</span>
       </header>
 
-      <div class="dashboard">
-        <div class="card card-full">
-          <div class="label">Net Assets</div>
-          <div class="amount" id="dom-balance">₱0.00</div>
+      <div class="app-body">
+        
+        <!-- TAB 1: HOME -->
+        <div id="home-tab" class="tab-pane active">
+          
+          <!-- SUMMARY CARDS -->
+          <div class="dashboard">
+            <div class="card card-full">
+              <div class="label">Available Balance</div>
+              <div class="amount" id="dom-balance">₱0.00</div>
+            </div>
+            <div class="card">
+              <div class="label">Inflow</div>
+              <div class="amount text-income" id="dom-income">₱0.00</div>
+            </div>
+            <div class="card">
+              <div class="label">Outflow</div>
+              <div class="amount text-expense" id="dom-expense">₱0.00</div>
+            </div>
+          </div>
+
+          <div class="transactions-wrapper">
+            
+            <!-- EXPANDABLE DATE, TIME & TYPE FILTER BAR (COLLAPSED BY DEFAULT) -->
+            <div class="filter-section collapsed" id="filterSection">
+              <div class="filter-toggle-header" onclick="toggleFilterPanel()">
+                <div class="filter-title">
+                  <span>🔍</span> Filter Transactions
+                </div>
+                <button class="filter-toggle-btn" id="filterToggleBtn">Show Controls ▼</button>
+              </div>
+
+              <div class="filter-collapsible-body">
+                <div class="filter-header">Timeframe Filter</div>
+                <div class="filter-presets" id="timeframePresets">
+                  <button class="filter-chip active" onclick="setPresetFilter('all', this)">All</button>
+                  <button class="filter-chip" onclick="setPresetFilter('day', this)">Today</button>
+                  <button class="filter-chip" onclick="setPresetFilter('week', this)">This Week</button>
+                  <button class="filter-chip" onclick="setPresetFilter('month', this)">This Month</button>
+                  <button class="filter-chip" onclick="setPresetFilter('custom', this)">Custom...</button>
+                </div>
+
+                <div class="filter-header" style="margin-top: 0.2rem;">Flow Type Filter</div>
+                <div class="filter-presets" id="typePresets">
+                  <button class="filter-chip active" onclick="setTypeFilter('all', this)">All Flows</button>
+                  <button class="filter-chip chip-income" onclick="setTypeFilter('income', this)">Inflow Only</button>
+                  <button class="filter-chip chip-expense" onclick="setTypeFilter('expense', this)">Outflow Only</button>
+                </div>
+
+                <!-- CUSTOM DATE SELECTORS -->
+                <div class="custom-date-controls" id="customDateControls">
+                  <select id="filterYear" onchange="resetAndRender()"></select>
+                  <select id="filterMonth" onchange="resetAndRender()">
+                    <option value="all">All Months</option>
+                    <option value="0">Jan</option>
+                    <option value="1">Feb</option>
+                    <option value="2">Mar</option>
+                    <option value="3">Apr</option>
+                    <option value="4">May</option>
+                    <option value="5">Jun</option>
+                    <option value="6">Jul</option>
+                    <option value="7">Aug</option>
+                    <option value="8">Sep</option>
+                    <option value="9">Oct</option>
+                    <option value="10">Nov</option>
+                    <option value="11">Dec</option>
+                  </select>
+                  <select id="filterDay" onchange="resetAndRender()">
+                    <option value="all">All Days</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <h3>Transactions</h3>
+            <div id="loader" class="loader">ESTABLISHING CONNECTION...</div>
+            <div id="tx-list"></div>
+            <button id="loadMoreBtn" class="load-more-btn" onclick="loadMoreTransactions()">LOAD MORE (20)</button>
+          </div>
         </div>
-        <div class="card">
-          <div class="label">Inflow</div>
-          <div class="amount text-income" id="dom-income">₱0.00</div>
+
+        <!-- TAB 2: BUDGET PACING -->
+        <div id="budget-tab" class="tab-pane">
+          <div class="budget-pacing-card">
+            <div class="budget-pacing-header">
+              <h3>Budget Pacing</h3>
+              <button class="edit-budget-btn" id="openBudgetModalBtn">⚙️ SET BUDGET</button>
+            </div>
+
+            <div class="budget-metrics-grid">
+              <div class="metric-box">
+                <div class="m-label">Monthly Target</div>
+                <div class="m-val" id="metric-monthly">₱0</div>
+              </div>
+              <div class="metric-box">
+                <div class="m-label">Weekly Pace</div>
+                <div class="m-val" id="metric-weekly">₱0</div>
+              </div>
+              <div class="metric-box">
+                <div class="m-label">Safe/Day Today</div>
+                <div class="m-val text-income" id="metric-daily">₱0</div>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <canvas id="pacingChart"></canvas>
+            </div>
+          </div>
         </div>
-        <div class="card">
-          <div class="label">Outflow</div>
-          <div class="amount text-expense" id="dom-expense">₱0.00</div>
+
+        <!-- TAB 3: SETTINGS & CATEGORIES CRUD -->
+        <div id="settings-tab" class="tab-pane">
+          <div class="settings-panel">
+            <div class="sidebar-section-title">Manage Categories</div>
+            
+            <div class="input-group" style="margin-bottom: 0.5rem;">
+              <select id="sidebarCatTypeSelect">
+                <option value="expense">Outflow (Expense)</option>
+                <option value="income">Inflow (Income)</option>
+              </select>
+            </div>
+
+            <div class="input-group flex">
+              <input type="text" id="newCategoryName" placeholder="New category name...">
+              <button class="btn-submit" id="addCatBtn" style="padding: 0.8rem; width: auto;">ADD</button>
+            </div>
+            
+            <ul class="cat-list" id="sidebar-cat-list"></ul>
+
+            <button class="logout-btn" onclick="logout()">Terminate Session</button>
+          </div>
         </div>
+
       </div>
 
-      <div class="transactions-wrapper">
-        <h3>Data Log</h3>
-        <div id="loader" class="loader">ESTABLISHING CONNECTION...</div>
-        <div id="tx-list"></div>
+      <!-- BOTTOM NAVIGATION TABS BAR -->
+      <div class="nav-tabs">
+        <button class="nav-btn active" onclick="switchTab('home-tab', this)">
+          <span class="icon">🏠</span>
+          <span>Home</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('budget-tab', this)">
+          <span class="icon">📊</span>
+          <span>Budget</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('settings-tab', this)">
+          <span class="icon">⚙️</span>
+          <span>Settings</span>
+        </button>
       </div>
 
       <button class="fab" id="openModalBtn">+</button>
 
-      <!-- Modal -->
+      <!-- ENTRY MODAL -->
       <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
           <div class="modal-header">
@@ -273,8 +576,14 @@
               <input type="number" id="amount" step="0.01" placeholder="0.00" required>
             </div>
             <div class="input-group">
-              <label>Identifier Node (Category)</label>
-              <input type="text" id="category" placeholder="e.g. Server Cost, Salary" required>
+              <label>Category</label>
+              <select id="category" required>
+                <option value="" disabled selected>Select a category</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Description (Optional)</label>
+              <input type="text" id="description" placeholder="e.g. Lunch with friends">
             </div>
             <div class="input-group">
               <label>Timestamp</label>
@@ -284,18 +593,50 @@
           </form>
         </div>
       </div>
+
+      <!-- BUDGET SETTING MODAL -->
+      <div class="modal-overlay" id="budgetModalOverlay">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>Set Target Budget</h2>
+            <button class="close-btn" id="closeBudgetModalBtn">&times;</button>
+          </div>
+          <form id="budgetForm">
+            <div class="input-group">
+              <label>Monthly Spending Limit (PHP)</label>
+              <input type="number" id="monthlyBudgetInput" step="100" placeholder="e.g. 15000" required>
+            </div>
+            <button type="submit" class="btn-submit" id="saveBudgetBtn">SAVE BUDGET</button>
+          </form>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
   <script>
-    // --- PASTE YOUR NEW APP SCRIPT URL HERE ---
-    const API_URL = "https://script.google.com/macros/s/AKfycbw2oYnJ_Y4xKtLtBi7_FUH35XB6gGWwe-zd-xdVv783oL9wIzzovUZ5QIr_dbdP-_6z/exec";
+    // --- PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ---
+    const API_URL = "https://script.google.com/macros/s/AKfycbwAXD1g784viStYbt6DUbWW-q1vdHLyqU5FmP3Rxgy5kMAwbdV1CThOfPsA7Qioo0Y5/exec";
 
     let currentUserNumber = localStorage.getItem('neoUserNumber') || null;
     let currentUsername = localStorage.getItem('neoUsername') || null;
     let transactions = [];
+    let monthlyBudgetTarget = 0;
+    
+    let userExpenseCats = []; 
+    let userIncomeCats = []; 
+    
+    const defaultExpenseCats = ['Food', 'Bills', 'Transportation', 'Entertainment', 'Health', 'Others'];
+    const defaultIncomeCats = ['Deposits', 'Salary', 'Savings', 'Balance'];
+
     let editingRowNumber = null;
+    let chartInstance = null;
+    let activeFilterMode = 'all';
+    let activeTypeFilterMode = 'all';
+
+    // PAGINATION CONTROLS
+    let visibleCount = 25; 
 
     const authView = document.getElementById('auth-view');
     const appView = document.getElementById('app-view');
@@ -303,8 +644,63 @@
     const regForm = document.getElementById('register-form');
     const authError = document.getElementById('auth-error');
     const displayUser = document.getElementById('display-user');
+    
+    const typeSelect = document.getElementById('type');
+    const categorySelect = document.getElementById('category');
+    const sidebarCatTypeSelect = document.getElementById('sidebarCatTypeSelect');
 
     if (currentUserNumber) { showApp(); }
+
+    // --- EXPAND / COLLAPSE FILTER PANEL ---
+    function toggleFilterPanel() {
+      const filterSec = document.getElementById('filterSection');
+      const toggleBtn = document.getElementById('filterToggleBtn');
+      filterSec.classList.toggle('collapsed');
+      
+      if (filterSec.classList.contains('collapsed')) {
+        toggleBtn.textContent = 'Show Controls ▼';
+      } else {
+        toggleBtn.textContent = 'Hide Controls ▲';
+      }
+    }
+
+    // --- POPULATE DATE DROPDOWNS ---
+    function initCustomDateDropdowns() {
+      const yearSelect = document.getElementById('filterYear');
+      const daySelect = document.getElementById('filterDay');
+      const currentYear = new Date().getFullYear();
+
+      yearSelect.innerHTML = '<option value="all">All Years</option>';
+      for (let y = currentYear; y >= currentYear - 5; y--) {
+        yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+      }
+
+      daySelect.innerHTML = '<option value="all">All Days</option>';
+      for (let d = 1; d <= 31; d++) {
+        daySelect.innerHTML += `<option value="${d}">${d}</option>`;
+      }
+    }
+    initCustomDateDropdowns();
+
+    // --- TAB SWITCHING WITH FAB VISIBILITY CONTROL ---
+    function switchTab(tabId, btnElement) {
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      btnElement.classList.add('active');
+
+      const fabBtn = document.getElementById('openModalBtn');
+      if (tabId === 'home-tab') {
+        fabBtn.style.display = 'flex';
+      } else {
+        fabBtn.style.display = 'none';
+      }
+
+      if (tabId === 'budget-tab' && chartInstance) {
+        setTimeout(() => { chartInstance.resize(); }, 100);
+      }
+    }
 
     function toggleAuth(type) {
       authError.textContent = "";
@@ -320,74 +716,130 @@
     function showApp() {
       authView.classList.remove('active-view');
       appView.classList.add('active-view');
-      displayUser.textContent = `USR: ${currentUsername} [${currentUserNumber}]`;
+      displayUser.textContent = `[${currentUsername}]`;
       loadData();
     }
 
     function logout() {
       localStorage.removeItem('neoUserNumber');
       localStorage.removeItem('neoUsername');
-      currentUserNumber = null;
-      currentUsername = null;
-      transactions = [];
+      currentUserNumber = null; currentUsername = null; transactions = [];
       appView.classList.remove('active-view');
       authView.classList.add('active-view');
       document.getElementById('tx-list').innerHTML = '';
       authError.textContent = "Session Terminated.";
     }
 
-    // --- LOGIN (NOW USING PIN) ---
+    // --- FILTER & PAGINATION LOGIC ---
+    function setPresetFilter(mode, btnEl) {
+      activeFilterMode = mode;
+      visibleCount = 25; // Reset pagination count on filter change
+      document.querySelectorAll('#timeframePresets .filter-chip').forEach(chip => chip.classList.remove('active'));
+      btnEl.classList.add('active');
+
+      const customControls = document.getElementById('customDateControls');
+      if (mode === 'custom') {
+        customControls.classList.add('active');
+      } else {
+        customControls.classList.remove('active');
+      }
+      renderApp();
+    }
+
+    function setTypeFilter(mode, btnEl) {
+      activeTypeFilterMode = mode;
+      visibleCount = 25; // Reset pagination count on filter change
+      document.querySelectorAll('#typePresets .filter-chip').forEach(chip => chip.classList.remove('active'));
+      btnEl.classList.add('active');
+      renderApp();
+    }
+
+    function resetAndRender() {
+      visibleCount = 25;
+      renderApp();
+    }
+
+    function loadMoreTransactions() {
+      visibleCount += 20;
+      renderApp();
+    }
+
+    function getFilteredTransactions() {
+      const now = new Date();
+      const todayYear = now.getFullYear();
+      const todayMonth = now.getMonth();
+      const todayDate = now.getDate();
+
+      return transactions.filter(tx => {
+        // First filter by type (Inflow/Outflow/All)
+        if (activeTypeFilterMode !== 'all' && tx.type !== activeTypeFilterMode) {
+          return false;
+        }
+
+        const d = new Date(tx.date);
+        const txYear = d.getFullYear();
+        const txMonth = d.getMonth();
+        const txDate = d.getDate();
+
+        if (activeFilterMode === 'day') {
+          return txYear === todayYear && txMonth === todayMonth && txDate === todayDate;
+        } 
+        if (activeFilterMode === 'week') {
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(todayDate - now.getDay());
+          startOfWeek.setHours(0,0,0,0);
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          endOfWeek.setHours(23,59,59,999);
+          return d >= startOfWeek && d <= endOfWeek;
+        } 
+        if (activeFilterMode === 'month') {
+          return txYear === todayYear && txMonth === todayMonth;
+        } 
+        if (activeFilterMode === 'custom') {
+          const selYear = document.getElementById('filterYear').value;
+          const selMonth = document.getElementById('filterMonth').value;
+          const selDay = document.getElementById('filterDay').value;
+
+          if (selYear !== 'all' && txYear !== parseInt(selYear)) return false;
+          if (selMonth !== 'all' && txMonth !== parseInt(selMonth)) return false;
+          if (selDay !== 'all' && txDate !== parseInt(selDay)) return false;
+          return true;
+        }
+        return true; // 'all' timeframe
+      });
+    }
+
+    // --- AUTH ---
     loginForm.onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('loginBtn');
       btn.textContent = "AUTHENTICATING..."; btn.disabled = true; authError.textContent = "";
-      
-      const payload = {
-        action: 'login',
-        username: document.getElementById('login-user').value,
-        pin: document.getElementById('login-pin').value // Swapped password for PIN
-      };
-
+      const payload = { action: 'login', username: document.getElementById('login-user').value, pin: document.getElementById('login-pin').value };
       try {
         const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
         const json = await res.json();
         if(json.result === 'success') {
-          currentUserNumber = json.userNumber;
-          currentUsername = json.username;
-          localStorage.setItem('neoUserNumber', currentUserNumber);
-          localStorage.setItem('neoUsername', currentUsername);
-          loginForm.reset();
-          showApp();
-        } else {
-          authError.textContent = "ACCESS DENIED: " + json.error;
-        }
+          currentUserNumber = json.userNumber; currentUsername = json.username;
+          localStorage.setItem('neoUserNumber', currentUserNumber); localStorage.setItem('neoUsername', currentUsername);
+          loginForm.reset(); showApp();
+        } else { authError.textContent = "ACCESS DENIED: " + json.error; }
       } catch (err) { authError.textContent = "CONNECTION FAILURE"; }
       btn.textContent = "INITIALIZE LOGIN"; btn.disabled = false;
     };
 
-    // --- REGISTER (NOW USING PIN) ---
     regForm.onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('regBtn');
       btn.textContent = "GENERATING..."; btn.disabled = true; authError.textContent = "";
-      
-      const payload = {
-        action: 'register',
-        username: document.getElementById('reg-user').value,
-        email: document.getElementById('reg-email').value,
-        pin: document.getElementById('reg-pin').value // Swapped password for PIN
-      };
-
+      const payload = { action: 'register', username: document.getElementById('reg-user').value, email: document.getElementById('reg-email').value, pin: document.getElementById('reg-pin').value };
       try {
         const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
         const json = await res.json();
         if(json.result === 'success') {
-          currentUserNumber = json.userNumber;
-          currentUsername = json.username;
-          localStorage.setItem('neoUserNumber', currentUserNumber);
-          localStorage.setItem('neoUsername', currentUsername);
-          regForm.reset();
-          showApp();
+          currentUserNumber = json.userNumber; currentUsername = json.username;
+          localStorage.setItem('neoUserNumber', currentUserNumber); localStorage.setItem('neoUsername', currentUsername);
+          regForm.reset(); showApp();
         } else { authError.textContent = "ERROR: " + json.error; }
       } catch (err) { authError.textContent = "CONNECTION FAILURE"; }
       btn.textContent = "GENERATE IDENTITY"; btn.disabled = false;
@@ -397,6 +849,7 @@
       return "₱" + parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    // --- FETCH & CALCULATE PACING ---
     async function loadData() {
       const loader = document.getElementById('loader');
       loader.style.display = 'block';
@@ -404,24 +857,46 @@
         const response = await fetch(API_URL + "?userNumber=" + currentUserNumber);
         const json = await response.json();
         if(json.result === "success") {
-          transactions = json.data;
+          transactions = json.data || [];
+          monthlyBudgetTarget = Number(json.budget) || 0;
+          
+          const fetchedCats = json.categories || [];
+          const fetchedExp = fetchedCats.filter(c => c.type === 'expense').map(c => c.name);
+          const fetchedInc = fetchedCats.filter(c => c.type === 'income').map(c => c.name);
+          
+          userExpenseCats = [...new Set([...defaultExpenseCats, ...fetchedExp])];
+          userIncomeCats = [...new Set([...defaultIncomeCats, ...fetchedInc])];
+          
           renderApp();
+          renderBudgetAndPacing();
+          renderSidebarCategories();
+          updateCategoryDropdown();
         }
       } catch (err) { loader.textContent = "SYNC FAILED."; }
     }
 
     function renderApp() {
       document.getElementById('loader').style.display = 'none';
-      let totalIn = 0, totalOut = 0;
       const txList = document.getElementById('tx-list');
+      const loadMoreBtn = document.getElementById('loadMoreBtn');
       txList.innerHTML = '';
 
-      const displayData = [...transactions].reverse();
+      const filtered = getFilteredTransactions();
+      const displayData = [...filtered].reverse();
 
-      displayData.forEach(tx => {
+      // Apply pagination to ALL filters
+      const visibleData = displayData.slice(0, visibleCount);
+
+      if (displayData.length > visibleCount) {
+        loadMoreBtn.style.display = 'block';
+        loadMoreBtn.textContent = `LOAD MORE (${Math.min(20, displayData.length - visibleCount)})`;
+      } else {
+        loadMoreBtn.style.display = 'none';
+      }
+
+      visibleData.forEach(tx => {
         const amount = parseFloat(tx.amount) || 0;
         const isIncome = tx.type === 'income';
-        if(isIncome) totalIn += amount; else totalOut += amount;
 
         let displayDate = tx.date;
         try { displayDate = new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch(e){}
@@ -429,10 +904,13 @@
         const div = document.createElement('div');
         div.className = 'tx-item';
         div.onclick = () => openEditModal(tx);
+        
+        const descText = tx.description ? ` • ${tx.description}` : '';
+
         div.innerHTML = `
           <div class="tx-info">
             <h4>${tx.category}</h4>
-            <p>${displayDate}</p>
+            <p>${displayDate}${descText}</p>
           </div>
           <div class="tx-val ${isIncome ? 'text-income' : 'text-expense'}">
             ${isIncome ? '+' : '-'}${formatMoney(amount)}
@@ -441,11 +919,217 @@
         txList.appendChild(div);
       });
 
-      document.getElementById('dom-income').textContent = formatMoney(totalIn);
-      document.getElementById('dom-expense').textContent = formatMoney(totalOut);
-      document.getElementById('dom-balance').textContent = formatMoney(totalIn - totalOut);
+      // Calculate totals for all matching items in the active filter
+      let fullIn = 0, fullOut = 0;
+      displayData.forEach(tx => {
+        const amt = parseFloat(tx.amount) || 0;
+        if(tx.type === 'income') fullIn += amt; else fullOut += amt;
+      });
+
+      document.getElementById('dom-income').textContent = formatMoney(fullIn);
+      document.getElementById('dom-expense').textContent = formatMoney(fullOut);
+      document.getElementById('dom-balance').textContent = formatMoney(fullIn - fullOut);
     }
 
+    // --- BUDGET PACING & GRAPH CALCULATION ---
+    function renderBudgetAndPacing() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const currentDay = now.getDate();
+      
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      
+      const dailySpendMap = {};
+      let totalSpentThisMonth = 0;
+
+      transactions.forEach(tx => {
+        if (tx.type === 'expense') {
+          const d = new Date(tx.date);
+          if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+            const day = d.getDate();
+            const amt = Number(tx.amount) || 0;
+            dailySpendMap[day] = (dailySpendMap[day] || 0) + amt;
+            totalSpentThisMonth += amt;
+          }
+        }
+      });
+
+      const weeklyCap = monthlyBudgetTarget > 0 ? (monthlyBudgetTarget / (daysInMonth / 7)) : 0;
+      const remainingDays = Math.max(1, (daysInMonth - currentDay) + 1);
+      const remainingBudget = Math.max(0, monthlyBudgetTarget - totalSpentThisMonth);
+      const safeDailyAllowance = monthlyBudgetTarget > 0 ? (remainingBudget / remainingDays) : 0;
+
+      document.getElementById('metric-monthly').textContent = "₱" + Math.round(monthlyBudgetTarget).toLocaleString();
+      document.getElementById('metric-weekly').textContent = "₱" + Math.round(weeklyCap).toLocaleString();
+      
+      const dailyEl = document.getElementById('metric-daily');
+      dailyEl.textContent = "₱" + Math.round(safeDailyAllowance).toLocaleString();
+      
+      if (totalSpentThisMonth > monthlyBudgetTarget && monthlyBudgetTarget > 0) {
+        dailyEl.className = 'm-val text-expense';
+      } else {
+        dailyEl.className = 'm-val text-income';
+      }
+
+      const labels = [];
+      const idealPaceData = [];
+      const actualSpendData = [];
+      
+      const idealDailyIncrement = monthlyBudgetTarget / daysInMonth;
+      let cumulativeActual = 0;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        labels.push(day);
+        idealPaceData.push(Math.round(day * idealDailyIncrement));
+
+        if (day <= currentDay) {
+          cumulativeActual += (dailySpendMap[day] || 0);
+          actualSpendData.push(Math.round(cumulativeActual));
+        } else {
+          actualSpendData.push(null);
+        }
+      }
+
+      renderPacingChart(labels, idealPaceData, actualSpendData);
+    }
+
+    function renderPacingChart(labels, idealData, actualData) {
+      const ctx = document.getElementById('pacingChart').getContext('2d');
+      if (chartInstance) { chartInstance.destroy(); }
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Ideal Pace',
+              data: idealData,
+              borderColor: '#94A3B8',
+              borderDash: [4, 4],
+              borderWidth: 2,
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'Actual Spend',
+              data: actualData,
+              borderColor: '#0066FF',
+              backgroundColor: 'rgba(0, 102, 255, 0.08)',
+              borderWidth: 3,
+              tension: 0.2,
+              fill: true,
+              pointRadius: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { family: 'Rajdhani', size: 11 } } },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ₱${ctx.raw}` } }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: 'Rajdhani', size: 10 } } },
+            y: { ticks: { font: { family: 'Rajdhani', size: 10 }, callback: (v) => '₱' + v } }
+          }
+        }
+      });
+    }
+
+    // --- BUDGET MODAL HANDLERS ---
+    const budgetModal = document.getElementById('budgetModalOverlay');
+    document.getElementById('openBudgetModalBtn').onclick = () => {
+      document.getElementById('monthlyBudgetInput').value = monthlyBudgetTarget || '';
+      budgetModal.classList.add('active');
+    };
+    document.getElementById('closeBudgetModalBtn').onclick = () => budgetModal.classList.remove('active');
+
+    document.getElementById('budgetForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('saveBudgetBtn');
+      btn.textContent = "SAVING..."; btn.disabled = true;
+
+      const newBudget = parseFloat(document.getElementById('monthlyBudgetInput').value) || 0;
+      const payload = { action: 'setBudget', userNumber: currentUserNumber, monthlyBudget: newBudget };
+
+      try {
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        monthlyBudgetTarget = newBudget;
+        renderBudgetAndPacing();
+        budgetModal.classList.remove('active');
+      } catch(err) { alert('Failed to update budget'); }
+      finally { btn.textContent = "SAVE BUDGET"; btn.disabled = false; }
+    };
+
+    // --- CATEGORIES CRUD LOGIC ---
+    typeSelect.addEventListener('change', updateCategoryDropdown);
+    sidebarCatTypeSelect.addEventListener('change', renderSidebarCategories);
+
+    function updateCategoryDropdown() {
+      const selectedType = typeSelect.value;
+      categorySelect.innerHTML = '<option value="" disabled selected>Select a category</option>';
+      const listToRender = selectedType === 'income' ? userIncomeCats : userExpenseCats;
+      listToRender.forEach(cat => {
+        categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+      });
+    }
+
+    function renderSidebarCategories() {
+      const listElement = document.getElementById('sidebar-cat-list');
+      listElement.innerHTML = '';
+      const selectedType = sidebarCatTypeSelect.value;
+      const listToRender = selectedType === 'income' ? userIncomeCats : userExpenseCats;
+      const defaultsToCheck = selectedType === 'income' ? defaultIncomeCats : defaultExpenseCats;
+
+      listToRender.forEach(cat => {
+        const isDefault = defaultsToCheck.includes(cat);
+        const delBtnHtml = isDefault ? '' : `<button class="del-cat-btn" onclick="deleteCategory('${cat}', '${selectedType}')">X</button>`;
+        const li = document.createElement('li');
+        li.className = 'cat-item';
+        li.innerHTML = `<span>${cat}</span>${delBtnHtml}`;
+        listElement.appendChild(li);
+      });
+    }
+
+    document.getElementById('addCatBtn').onclick = async () => {
+      const input = document.getElementById('newCategoryName');
+      const newCat = input.value.trim();
+      if(!newCat) return;
+      
+      const btn = document.getElementById('addCatBtn');
+      btn.textContent = "..."; btn.disabled = true;
+      const selectedType = sidebarCatTypeSelect.value;
+
+      if (selectedType === 'income' && !userIncomeCats.includes(newCat)) userIncomeCats.push(newCat);
+      else if (selectedType === 'expense' && !userExpenseCats.includes(newCat)) userExpenseCats.push(newCat);
+      
+      renderSidebarCategories(); updateCategoryDropdown(); input.value = ""; 
+
+      const payload = { action: 'addCategory', userNumber: currentUserNumber, categoryName: newCat, type: selectedType };
+      try {
+        await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        loadData(); 
+      } catch(e) { alert('Failed to add category to database.'); }
+      finally { btn.textContent = "ADD"; btn.disabled = false; }
+    };
+
+    window.deleteCategory = async function(catName, catType) {
+      if(!confirm(`Delete category "${catName}"?`)) return;
+      if (catType === 'income') userIncomeCats = userIncomeCats.filter(cat => cat !== catName);
+      else userExpenseCats = userExpenseCats.filter(cat => cat !== catName);
+      
+      renderSidebarCategories(); updateCategoryDropdown();
+      const payload = { action: 'deleteCategory', userNumber: currentUserNumber, categoryName: catName, type: catType };
+      try {
+        await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        loadData(); 
+      } catch(e) { alert('Failed to delete category from database.'); }
+    };
+
+    // --- TRANSACTION MODAL LOGIC ---
     const modalOverlay = document.getElementById('modalOverlay');
     const form = document.getElementById('txForm');
     
@@ -454,19 +1138,29 @@
       form.reset();
       document.getElementById('date').valueAsDate = new Date();
       document.getElementById('modalTitle').textContent = "NEW ENTRY";
+      typeSelect.value = 'expense'; 
+      updateCategoryDropdown(); 
       modalOverlay.classList.add('active');
     };
 
     function openEditModal(tx) {
       editingRowNumber = tx.rowNumber;
       document.getElementById('modalTitle').textContent = "MODIFY ENTRY";
-      document.getElementById('type').value = tx.type;
+      typeSelect.value = tx.type;
+      updateCategoryDropdown();
+      
+      let catExists = Array.from(categorySelect.options).some(opt => opt.value === tx.category);
+      if(!catExists) { categorySelect.innerHTML += `<option value="${tx.category}">${tx.category}</option>`; }
+      categorySelect.value = tx.category;
+      
       document.getElementById('amount').value = tx.amount;
-      document.getElementById('category').value = tx.category;
+      document.getElementById('description').value = tx.description || ""; 
+      
       try {
         const d = new Date(tx.date);
         document.getElementById('date').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       } catch(e) {}
+      
       modalOverlay.classList.add('active');
     }
 
@@ -482,10 +1176,10 @@
         action: isEditing ? 'edit' : 'add',
         userNumber: currentUserNumber,
         rowNumber: editingRowNumber,
-        type: document.getElementById('type').value,
+        type: typeSelect.value,
         amount: parseFloat(document.getElementById('amount').value),
-        category: document.getElementById('category').value,
-        description: "",
+        category: categorySelect.value,
+        description: document.getElementById('description').value,
         date: document.getElementById('date').value
       };
 

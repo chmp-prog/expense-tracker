@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Expense Tracker & Budget Pacer</title>
   
   <!-- Browser Tab Favicon (Money Icon) -->
@@ -17,15 +17,18 @@
   <style>
     :root {
       --bg-light: #F4F7FB;
-      --panel-bg: rgba(255, 255, 255, 0.85);
-      --tech-blue: #0066FF;
-      --tech-purple: #8A2BE2;
-      --tech-green: #00A344;
-      --tech-red: #E60023;
+      --panel-bg: rgba(255, 255, 255, 0.92);
+      --tech-blue: #005ce6;
+      --tech-blue-hover: #0048b3;
+      --tech-purple: #7b1fa2;
+      --tech-green: #008738;
+      --tech-red: #d32f2f;
       --text-main: #0F172A;
-      --text-muted: #64748B;
-      --glass-border: 1px solid rgba(0, 102, 255, 0.15);
+      --text-muted: #475569;
+      --glass-border: 1px solid rgba(0, 102, 255, 0.2);
       --panel-shadow: 0 8px 32px rgba(0, 30, 80, 0.08);
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-area-top: env(safe-area-inset-top, 0px);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -39,7 +42,9 @@
       display: flex;
       justify-content: center;
       min-height: 100vh;
+      min-height: -webkit-fill-available;
       color: var(--text-main);
+      padding-top: var(--safe-area-top);
     }
 
     .app {
@@ -49,17 +54,26 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      /* Prevent full-page scroll on mobile/desktop */
+      height: -webkit-fill-available;
       overflow: hidden; 
-      background: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.5);
       backdrop-filter: blur(20px);
       border-left: var(--glass-border);
       border-right: var(--glass-border);
       box-shadow: 0 0 40px rgba(0,0,0,0.05);
     }
 
-    #auth-view { display: none; width: 100%; height: 100%; flex-direction: column; overflow-y: auto; }
-    #app-view { display: none; width: 100%; height: 100%; flex-direction: column; overflow: hidden; position: relative; }
+    #auth-view { display: none; width: 100%; height: 100%; flex-direction: column; overflow-y: auto; padding-bottom: var(--safe-area-bottom); }
+    
+    /* Layout fix for always-visible bottom nav bar */
+    #app-view { 
+      display: none; 
+      width: 100%; 
+      height: 100%; 
+      flex-direction: column; 
+      overflow: hidden; 
+      position: relative; 
+    }
     .active-view { display: flex !important; }
 
     /* AUTH */
@@ -67,33 +81,23 @@
     .auth-header { text-align: center; margin-bottom: 2rem; }
     .auth-logo { width: 64px; height: 64px; margin: 0 auto 0.75rem auto; display: block; }
     .auth-header h1 { font-size: 2.2rem; color: var(--tech-blue); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
-    .auth-header p { color: var(--text-muted); font-size: 0.95rem; font-weight: 600; letter-spacing: 1px; }
+    .auth-header p { color: var(--text-muted); font-size: 0.95rem; font-weight: 700; letter-spacing: 1px; }
     .toggle-auth { text-align: center; margin-top: 1.5rem; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; font-weight: 600; }
     .toggle-auth span { color: var(--tech-purple); text-decoration: underline; }
     #register-form { display: none; }
 
     /* HEADER */
-    header { padding: 1rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: var(--glass-border); z-index: 5; flex-shrink: 0; }
+    header { padding: 1rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: var(--glass-border); z-index: 5; flex-shrink: 0; }
     header h1 { font-size: 1.3rem; color: var(--tech-blue); letter-spacing: 1px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     
-    .brand-logo-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .brand-svg-logo {
-      width: 32px;
-      height: 32px;
-      filter: drop-shadow(0px 2px 4px rgba(0, 102, 255, 0.2));
-    }
+    .brand-logo-wrapper { display: flex; align-items: center; gap: 10px; }
+    .brand-svg-logo { width: 32px; height: 32px; filter: drop-shadow(0px 2px 4px rgba(0, 102, 255, 0.2)); }
 
     /* TAB SCREENS & SCROLL AREA */
     .app-body { 
       flex: 1; 
       overflow-y: auto; 
       padding: 1rem; 
-      /* Leaves 70px at the bottom so content scrolls behind the tabs without being hidden */
-      padding-bottom: 70px; 
       display: flex; 
       flex-direction: column; 
       gap: 1rem; 
@@ -106,7 +110,7 @@
     .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
     .card { background: var(--panel-bg); border: var(--glass-border); border-radius: 12px; padding: 1rem; text-align: center; box-shadow: var(--panel-shadow); position: relative; }
     .card-full { grid-column: span 2; border-top: 3px solid var(--tech-purple); }
-    .card .label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; }
+    .card .label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; }
     .card .amount { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; color: var(--text-main); }
     .card-full .amount { font-size: 2rem; color: var(--tech-purple); }
 
@@ -121,49 +125,27 @@
       flex-direction: column;
       gap: 0.6rem;
       margin-bottom: 0.5rem;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .filter-toggle-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-    }
-    
-    .filter-toggle-header .filter-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--tech-blue);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .filter-toggle-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+    .filter-toggle-header .filter-title { font-size: 0.85rem; font-weight: 700; color: var(--tech-blue); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
 
     .filter-toggle-btn {
-      background: rgba(0, 102, 255, 0.08);
-      border: 1px solid rgba(0, 102, 255, 0.2);
+      background: rgba(0, 102, 255, 0.1);
+      border: 1px solid rgba(0, 102, 255, 0.3);
       color: var(--tech-blue);
       font-size: 0.75rem;
       font-weight: 700;
-      padding: 0.25rem 0.6rem;
+      padding: 0.35rem 0.65rem;
       border-radius: 12px;
       transition: all 0.2s ease;
+      cursor: pointer;
     }
+    .filter-toggle-btn:hover { background: var(--tech-blue); color: white; }
 
-    .filter-collapsible-body {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      margin-top: 0.25rem;
-    }
-
-    .filter-section.collapsed .filter-collapsible-body {
-      display: none;
-    }
+    .filter-collapsible-body { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.25rem; }
+    .filter-section.collapsed .filter-collapsible-body { display: none; }
 
     .filter-header { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
     .filter-presets { display: flex; gap: 0.35rem; flex-wrap: wrap; }
@@ -171,7 +153,7 @@
       background: rgba(0, 102, 255, 0.08);
       border: 1px solid rgba(0, 102, 255, 0.2);
       color: var(--text-main);
-      padding: 0.35rem 0.65rem;
+      padding: 0.4rem 0.7rem;
       border-radius: 20px;
       font-size: 0.75rem;
       font-weight: 700;
@@ -179,29 +161,16 @@
       transition: all 0.2s ease;
       text-transform: uppercase;
     }
-    .filter-chip.active {
-      background: var(--tech-blue);
-      color: #FFFFFF;
-      border-color: var(--tech-blue);
-    }
-    .filter-chip.chip-income.active {
-      background: var(--tech-green);
-      border-color: var(--tech-green);
-    }
-    .filter-chip.chip-expense.active {
-      background: var(--tech-red);
-      border-color: var(--tech-red);
-    }
-    .custom-date-controls {
-      display: none;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 0.5rem;
-      margin-top: 0.25rem;
-    }
+    .filter-chip:hover { transform: translateY(-1px); background: rgba(0, 102, 255, 0.15); }
+    .filter-chip.active { background: var(--tech-blue); color: #FFFFFF; border-color: var(--tech-blue); }
+    .filter-chip.chip-income.active { background: var(--tech-green); border-color: var(--tech-green); }
+    .filter-chip.chip-expense.active { background: var(--tech-red); border-color: var(--tech-red); }
+    
+    .custom-date-controls { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 0.25rem; }
     .custom-date-controls.active { display: grid; }
     .custom-date-controls select { padding: 0.4rem 0.5rem; font-size: 0.85rem; font-weight: 600; }
 
-    /* BUDGET PACING CARD & CHART */
+    /* BUDGET PACING CARD */
     .budget-pacing-card { background: var(--panel-bg); border: var(--glass-border); border-radius: 12px; padding: 1rem; box-shadow: var(--panel-shadow); border-top: 3px solid var(--tech-blue); }
     .budget-pacing-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
     .budget-pacing-header h3 { font-size: 1.05rem; font-weight: 700; color: var(--tech-blue); text-transform: uppercase; letter-spacing: 1px; }
@@ -220,21 +189,46 @@
     .edit-budget-btn:hover { background: var(--tech-blue); color: #FFFFFF; }
 
     .budget-metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; text-align: center; margin-bottom: 1rem; }
-    .metric-box { background: rgba(255,255,255,0.7); padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); }
+    .metric-box { background: rgba(255,255,255,0.85); padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); }
     .metric-box .m-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
     .metric-box .m-val { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
 
-    .chart-container { width: 100%; height: 240px; position: relative; }
+    .chart-container { 
+      width: 100%; 
+      height: 240px; 
+      max-height: 40vh; 
+      position: relative; 
+    }
 
     /* TRANSACTIONS & PAGINATION */
     .transactions-wrapper h3 { font-size: 1.1rem; font-weight: 700; color: var(--tech-blue); border-bottom: var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; }
-    .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: var(--panel-bg); border: var(--glass-border); border-left: 4px solid var(--tech-blue); border-radius: 8px; margin-bottom: 0.6rem; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s; }
-    .tx-item:hover { transform: translateX(4px); border-left-color: var(--tech-purple); }
-    .tx-info h4 { font-size: 1rem; font-weight: 600; color: var(--text-main); }
-    .tx-info p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.1rem; font-weight: 500; }
+    .tx-item { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 0.85rem; 
+      background: var(--panel-bg); 
+      border: var(--glass-border); 
+      border-left: 4px solid var(--tech-blue); 
+      border-radius: 8px; 
+      margin-bottom: 0.6rem; 
+      cursor: pointer; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02); 
+      transition: all 0.2s ease; 
+    }
+    .tx-item:hover { transform: translateX(4px); border-left-color: var(--tech-purple); background: #FFFFFF; }
+    .tx-item:active { transform: scale(0.99); }
+    .tx-info h4 { font-size: 1rem; font-weight: 700; color: var(--text-main); }
+    .tx-info p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.1rem; font-weight: 600; }
     .tx-val { font-weight: 700; font-size: 1.1rem; white-space: nowrap; margin-left: 0.5rem; }
     .text-income { color: var(--tech-green) !important; }
     .text-expense { color: var(--tech-red) !important; }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 2.5rem 1rem; background: var(--panel-bg); border-radius: 12px; border: var(--glass-border); }
+    .empty-state-icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.6; }
+    .empty-state-title { font-size: 1rem; font-weight: 700; color: var(--text-main); }
+    .empty-state-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
 
     .load-more-btn {
       width: 100%;
@@ -266,22 +260,19 @@
     .logout-btn { width: 100%; background: rgba(230, 0, 35, 0.1); border: 1px solid var(--tech-red); color: var(--tech-red); padding: 0.85rem; font-size: 0.95rem; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; margin-top: 1rem; }
     .logout-btn:hover { background: var(--tech-red); color: white; }
 
-    /* FIXED ALWAYS VISIBLE BOTTOM NAV TAB BAR */
-    /* ALWAYS-VISIBLE PINNED BOTTOM NAV TAB BAR */
+    /* PINNED BOTTOM NAV BAR - STRICTLY VISIBLE */
     .nav-tabs {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
+      flex-shrink: 0;
+      height: calc(60px + var(--safe-area-bottom));
+      padding-bottom: var(--safe-area-bottom);
       width: 100%;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(12px);
       border-top: var(--glass-border);
       display: flex;
       justify-content: space-around;
       align-items: center;
-      z-index: 50; /* Keeps it layered on top of all scrolling items */
+      z-index: 50;
     }
     .nav-btn {
       background: none;
@@ -299,38 +290,62 @@
       letter-spacing: 1px;
       text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
     .nav-btn .icon { font-size: 1.2rem; }
+    .nav-btn:hover { color: var(--tech-blue); }
     .nav-btn.active { color: var(--tech-blue); }
 
     /* INPUTS & BUTTONS */
     .input-group { margin-bottom: 1rem; text-align: left; }
     .input-group.flex { display: flex; gap: 10px; }
-    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--tech-blue); text-transform: uppercase; letter-spacing: 1px; }
-    input, select { width: 100%; padding: 0.8rem; background: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 8px; font-size: 1rem; color: var(--text-main); font-weight: 500; transition: all 0.3s; }
-    input:focus, select:focus { outline: none; border-color: var(--tech-blue); box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1); }
+    label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--tech-blue); text-transform: uppercase; letter-spacing: 1px; }
+    input, select { width: 100%; padding: 0.8rem; background: #FFFFFF; border: 2px solid #CBD5E1; border-radius: 8px; font-size: 1rem; color: var(--text-main); font-weight: 600; transition: all 0.2s ease; }
+    input:focus, select:focus { outline: none; border-color: var(--tech-blue); box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15); }
     #login-pin, #reg-pin { letter-spacing: 3px; font-size: 1.2rem; }
 
-    .btn-submit { width: 100%; padding: 1rem; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3); }
-    .btn-submit:hover { background: #0052cc; transform: translateY(-2px); }
-    .btn-submit:disabled { background: #CBD5E1; color: #94A3B8; cursor: not-allowed; }
+    .btn-submit { width: 100%; padding: 1rem; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.2s ease; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3); }
+    .btn-submit:hover { background: var(--tech-blue-hover); transform: translateY(-1px); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { background: #CBD5E1; color: #94A3B8; cursor: not-allowed; box-shadow: none; }
 
-    .fab { position: absolute; bottom: 4.5rem; right: 1.25rem; width: 56px; height: 56px; border-radius: 50%; background: var(--tech-blue); color: #FFFFFF; border: none; font-size: 2rem; font-weight: 400; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 102, 255, 0.4); cursor: pointer; z-index: 10; transition: all 0.2s; padding-bottom: 4px; }
-    .fab:active { transform: scale(0.9); }
+    .fab { 
+      position: absolute; 
+      bottom: calc(4.5rem + var(--safe-area-bottom)); 
+      right: 1.25rem; 
+      width: 56px; 
+      height: 56px; 
+      border-radius: 50%; 
+      background: var(--tech-blue); 
+      color: #FFFFFF; 
+      border: none; 
+      font-size: 2rem; 
+      font-weight: 400; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      box-shadow: 0 8px 20px rgba(0, 102, 255, 0.4); 
+      cursor: pointer; 
+      z-index: 10; 
+      transition: all 0.2s ease; 
+      padding-bottom: 4px; 
+    }
+    .fab:hover { transform: scale(1.05); background: var(--tech-blue-hover); }
+    .fab:active { transform: scale(0.92); }
 
     /* MODALS */
-    .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     .modal-overlay.active { opacity: 1; pointer-events: all; }
-    .modal { background: var(--bg-light); width: 90%; max-width: 400px; padding: 2rem; border: var(--glass-border); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto;}
+    .modal { background: var(--bg-light); width: 90%; max-width: 400px; padding: 2rem; border: var(--glass-border); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto;}
     .modal-overlay.active .modal { transform: scale(1); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 2px solid #E2E8F0; padding-bottom: 1rem; }
     .modal-header h2 { font-size: 1.4rem; color: var(--tech-blue); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;}
     .close-btn { background: rgba(0,0,0,0.05); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.5rem; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
+    .close-btn:hover { background: rgba(0,0,0,0.1); }
 
     .loader { text-align: center; padding: 3rem 0; color: var(--tech-blue); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-    #auth-error { color: var(--tech-red); text-align: center; font-size: 0.9rem; font-weight: 600; margin-top: 1rem; min-height: 1.2rem;}
+    #auth-error { color: var(--tech-red); text-align: center; font-size: 0.9rem; font-weight: 700; margin-top: 1rem; min-height: 1.2rem;}
   </style>
 </head>
 <body>
@@ -341,7 +356,6 @@
     <div id="auth-view" class="active-view">
       <div class="auth-container">
         <div class="auth-header">
-          <!-- AUTH LOGO -->
           <svg class="auth-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="shieldGradAuth" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -362,11 +376,11 @@
         </div>
         <form id="login-form">
           <div class="input-group">
-            <label>Username</label>
+            <label for="login-user">Username</label>
             <input type="text" id="login-user" required autocomplete="off">
           </div>
           <div class="input-group">
-            <label>PIN Code</label>
+            <label for="login-pin">PIN Code</label>
             <input type="password" id="login-pin" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
           </div>
           <button type="submit" class="btn-submit" id="loginBtn">INITIALIZE LOGIN</button>
@@ -374,15 +388,15 @@
         </form>
         <form id="register-form">
           <div class="input-group">
-            <label>Username</label>
+            <label for="reg-user">Username</label>
             <input type="text" id="reg-user" required autocomplete="off">
           </div>
           <div class="input-group">
-            <label>Email</label>
+            <label for="reg-email">Email</label>
             <input type="email" id="reg-email" required autocomplete="off">
           </div>
           <div class="input-group">
-            <label>Create PIN</label>
+            <label for="reg-pin">Create PIN</label>
             <input type="password" id="reg-pin" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
           </div>
           <button type="submit" class="btn-submit" id="regBtn">GENERATE IDENTITY</button>
@@ -396,7 +410,6 @@
     <div id="app-view">
       <header>
         <div class="brand-logo-wrapper">
-          <!-- HEADER SVG MONEY ICON -->
           <svg class="brand-svg-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -440,7 +453,7 @@
 
           <div class="transactions-wrapper">
             
-            <!-- EXPANDABLE DATE, TIME & TYPE FILTER BAR (COLLAPSED BY DEFAULT) -->
+            <!-- EXPANDABLE FILTER BAR -->
             <div class="filter-section collapsed" id="filterSection">
               <div class="filter-toggle-header" onclick="toggleFilterPanel()">
                 <div class="filter-title">
@@ -468,8 +481,8 @@
 
                 <!-- CUSTOM DATE SELECTORS -->
                 <div class="custom-date-controls" id="customDateControls">
-                  <select id="filterYear" onchange="resetAndRender()"></select>
-                  <select id="filterMonth" onchange="resetAndRender()">
+                  <select id="filterYear" aria-label="Filter Year" onchange="resetAndRender()"></select>
+                  <select id="filterMonth" aria-label="Filter Month" onchange="resetAndRender()">
                     <option value="all">All Months</option>
                     <option value="0">Jan</option>
                     <option value="1">Feb</option>
@@ -484,7 +497,7 @@
                     <option value="10">Nov</option>
                     <option value="11">Dec</option>
                   </select>
-                  <select id="filterDay" onchange="resetAndRender()">
+                  <select id="filterDay" aria-label="Filter Day" onchange="resetAndRender()">
                     <option value="all">All Days</option>
                   </select>
                 </div>
@@ -494,7 +507,7 @@
             <h3>Transactions</h3>
             <div id="loader" class="loader">ESTABLISHING CONNECTION...</div>
             <div id="tx-list"></div>
-            <button id="loadMoreBtn" class="load-more-btn" onclick="loadMoreTransactions()">LOAD MORE (20)</button>
+            <button id="loadMoreBtn" class="load-more-btn" onclick="loadMoreTransactions()">LOAD MORE (10)</button>
           </div>
         </div>
 
@@ -527,20 +540,20 @@
           </div>
         </div>
 
-        <!-- TAB 3: SETTINGS & CATEGORIES CRUD -->
+        <!-- TAB 3: SETTINGS -->
         <div id="settings-tab" class="tab-pane">
           <div class="settings-panel">
             <div class="sidebar-section-title">Manage Categories</div>
             
             <div class="input-group" style="margin-bottom: 0.5rem;">
-              <select id="sidebarCatTypeSelect">
+              <select id="sidebarCatTypeSelect" aria-label="Category Type">
                 <option value="expense">Outflow (Expense)</option>
                 <option value="income">Inflow (Income)</option>
               </select>
             </div>
 
             <div class="input-group flex">
-              <input type="text" id="newCategoryName" placeholder="New category name...">
+              <input type="text" id="newCategoryName" placeholder="New category name..." aria-label="New Category Name">
               <button class="btn-submit" id="addCatBtn" style="padding: 0.8rem; width: auto;">ADD</button>
             </div>
             
@@ -552,7 +565,7 @@
 
       </div>
 
-      <!-- BOTTOM NAVIGATION TABS BAR (ALWAYS VISIBLE) -->
+      <!-- BOTTOM NAVIGATION TABS -->
       <div class="nav-tabs">
         <button class="nav-btn active" onclick="switchTab('home-tab', this)">
           <span class="icon">🏠</span>
@@ -568,39 +581,39 @@
         </button>
       </div>
 
-      <button class="fab" id="openModalBtn">+</button>
+      <button class="fab" id="openModalBtn" aria-label="Add Entry">+</button>
 
       <!-- ENTRY MODAL -->
       <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
           <div class="modal-header">
             <h2 id="modalTitle">New Entry</h2>
-            <button class="close-btn" id="closeModalBtn">&times;</button>
+            <button class="close-btn" id="closeModalBtn" aria-label="Close Modal">&times;</button>
           </div>
           <form id="txForm">
             <div class="input-group">
-              <label>Flow Type</label>
+              <label for="type">Flow Type</label>
               <select id="type" required>
                 <option value="expense">Outflow (Expense)</option>
                 <option value="income">Inflow (Income)</option>
               </select>
             </div>
             <div class="input-group">
-              <label>Amount (PHP)</label>
+              <label for="amount">Amount (PHP)</label>
               <input type="number" id="amount" step="0.01" placeholder="0.00" required>
             </div>
             <div class="input-group">
-              <label>Category</label>
+              <label for="category">Category</label>
               <select id="category" required>
                 <option value="" disabled selected>Select a category</option>
               </select>
             </div>
             <div class="input-group">
-              <label>Description (Optional)</label>
+              <label for="description">Description (Optional)</label>
               <input type="text" id="description" placeholder="e.g. Lunch with friends">
             </div>
             <div class="input-group">
-              <label>Timestamp</label>
+              <label for="date">Timestamp</label>
               <input type="date" id="date" required>
             </div>
             <button type="submit" class="btn-submit" id="submitBtn">TRANSMIT DATA</button>
@@ -613,11 +626,11 @@
         <div class="modal">
           <div class="modal-header">
             <h2>Set Target Budget</h2>
-            <button class="close-btn" id="closeBudgetModalBtn">&times;</button>
+            <button class="close-btn" id="closeBudgetModalBtn" aria-label="Close Modal">&times;</button>
           </div>
           <form id="budgetForm">
             <div class="input-group">
-              <label>Monthly Spending Limit (PHP)</label>
+              <label for="monthlyBudgetInput">Monthly Spending Limit (PHP)</label>
               <input type="number" id="monthlyBudgetInput" step="100" placeholder="e.g. 15000" required>
             </div>
             <button type="submit" class="btn-submit" id="saveBudgetBtn">SAVE BUDGET</button>
@@ -630,7 +643,6 @@
   </div>
 
   <script>
-    // --- PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ---
     const API_URL = "https://script.google.com/macros/s/AKfycbwAXD1g784viStYbt6DUbWW-q1vdHLyqU5FmP3Rxgy5kMAwbdV1CThOfPsA7Qioo0Y5/exec";
 
     let currentUserNumber = localStorage.getItem('neoUserNumber') || null;
@@ -647,12 +659,10 @@
     let editingRowNumber = null;
     let chartInstance = null;
     
-    // UPDATED DEFAULTS: Timeframe defaults to 'month', Flow Type defaults to 'all'
     let activeFilterMode = 'month';
     let activeTypeFilterMode = 'all';
 
-    // PAGINATION CONTROLS
-    let visibleCount = 25; 
+    let visibleCount = 10; // UPDATED: 10 per page
 
     const authView = document.getElementById('auth-view');
     const appView = document.getElementById('app-view');
@@ -667,20 +677,13 @@
 
     if (currentUserNumber) { showApp(); }
 
-    // --- EXPAND / COLLAPSE FILTER PANEL ---
     function toggleFilterPanel() {
       const filterSec = document.getElementById('filterSection');
       const toggleBtn = document.getElementById('filterToggleBtn');
       filterSec.classList.toggle('collapsed');
-      
-      if (filterSec.classList.contains('collapsed')) {
-        toggleBtn.textContent = 'Show Controls ▼';
-      } else {
-        toggleBtn.textContent = 'Hide Controls ▲';
-      }
+      toggleBtn.textContent = filterSec.classList.contains('collapsed') ? 'Show Controls ▼' : 'Hide Controls ▲';
     }
 
-    // --- POPULATE DATE DROPDOWNS ---
     function initCustomDateDropdowns() {
       const yearSelect = document.getElementById('filterYear');
       const daySelect = document.getElementById('filterDay');
@@ -698,7 +701,6 @@
     }
     initCustomDateDropdowns();
 
-    // --- TAB SWITCHING WITH FAB VISIBILITY CONTROL ---
     function switchTab(tabId, btnElement) {
       document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -707,11 +709,7 @@
       btnElement.classList.add('active');
 
       const fabBtn = document.getElementById('openModalBtn');
-      if (tabId === 'home-tab') {
-        fabBtn.style.display = 'flex';
-      } else {
-        fabBtn.style.display = 'none';
-      }
+      fabBtn.style.display = (tabId === 'home-tab') ? 'flex' : 'none';
 
       if (tabId === 'budget-tab' && chartInstance) {
         setTimeout(() => { chartInstance.resize(); }, 100);
@@ -746,10 +744,9 @@
       authError.textContent = "Session Terminated.";
     }
 
-    // --- FILTER & PAGINATION LOGIC ---
     function setPresetFilter(mode, btnEl) {
       activeFilterMode = mode;
-      visibleCount = 25; // Reset pagination count on filter change
+      visibleCount = 10; // UPDATED: Reset to 10
       document.querySelectorAll('#timeframePresets .filter-chip').forEach(chip => chip.classList.remove('active'));
       btnEl.classList.add('active');
 
@@ -764,20 +761,32 @@
 
     function setTypeFilter(mode, btnEl) {
       activeTypeFilterMode = mode;
-      visibleCount = 25; // Reset pagination count on filter change
+      visibleCount = 10; // UPDATED: Reset to 10
       document.querySelectorAll('#typePresets .filter-chip').forEach(chip => chip.classList.remove('active'));
       btnEl.classList.add('active');
       renderApp();
     }
 
     function resetAndRender() {
-      visibleCount = 25;
+      visibleCount = 10; // UPDATED: Reset to 10
       renderApp();
     }
 
     function loadMoreTransactions() {
-      visibleCount += 20;
+      visibleCount += 10; // UPDATED: Load 10 more
       renderApp();
+    }
+
+    function parseTxDate(dateStr) {
+      if (!dateStr) return new Date();
+      if (typeof dateStr === 'string' && dateStr.includes('T')) {
+        return new Date(dateStr);
+      }
+      const parts = String(dateStr).split('-');
+      if (parts.length === 3) {
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+      return new Date(dateStr);
     }
 
     function getFilteredTransactions() {
@@ -787,12 +796,11 @@
       const todayDate = now.getDate();
 
       return transactions.filter(tx => {
-        // First filter by type (Inflow/Outflow/All)
         if (activeTypeFilterMode !== 'all' && tx.type !== activeTypeFilterMode) {
           return false;
         }
 
-        const d = new Date(tx.date);
+        const d = parseTxDate(tx.date);
         const txYear = d.getFullYear();
         const txMonth = d.getMonth();
         const txDate = d.getDate();
@@ -822,11 +830,10 @@
           if (selDay !== 'all' && txDate !== parseInt(selDay)) return false;
           return true;
         }
-        return true; // 'all' timeframe
+        return true; 
       });
     }
 
-    // --- AUTH ---
     loginForm.onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('loginBtn');
@@ -862,10 +869,9 @@
     };
 
     function formatMoney(amount) {
-      return "₱" + parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return "₱" + parseFloat(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    // --- FETCH & CALCULATE PACING ---
     async function loadData() {
       const loader = document.getElementById('loader');
       loader.style.display = 'block';
@@ -900,49 +906,59 @@
       const filtered = getFilteredTransactions();
       const displayData = [...filtered].reverse();
 
-      // Apply pagination to filtered items
-      const visibleData = displayData.slice(0, visibleCount);
-
-      if (displayData.length > visibleCount) {
-        loadMoreBtn.style.display = 'block';
-        loadMoreBtn.textContent = `LOAD MORE (${Math.min(20, displayData.length - visibleCount)})`;
-      } else {
-        loadMoreBtn.style.display = 'none';
-      }
-
-      visibleData.forEach(tx => {
-        const amount = parseFloat(tx.amount) || 0;
-        const isIncome = tx.type === 'income';
-
-        let displayDate = tx.date;
-        try { displayDate = new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch(e){}
-
-        const div = document.createElement('div');
-        div.className = 'tx-item';
-        div.onclick = () => openEditModal(tx);
-        
-        const descText = tx.description ? ` • ${tx.description}` : '';
-
-        div.innerHTML = `
-          <div class="tx-info">
-            <h4>${tx.category}</h4>
-            <p>${displayDate}${descText}</p>
-          </div>
-          <div class="tx-val ${isIncome ? 'text-income' : 'text-expense'}">
-            ${isIncome ? '+' : '-'}${formatMoney(amount)}
+      if (displayData.length === 0) {
+        txList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">💸</div>
+            <div class="empty-state-title">No Transactions Found</div>
+            <div class="empty-state-desc">Try clearing filters or adding a new record.</div>
           </div>
         `;
-        txList.appendChild(div);
-      });
+        loadMoreBtn.style.display = 'none';
+      } else {
+        const visibleData = displayData.slice(0, visibleCount);
 
-      // 1) Filtered Totals for Inflow & Outflow
+        if (displayData.length > visibleCount) {
+          loadMoreBtn.style.display = 'block';
+          loadMoreBtn.textContent = `LOAD MORE (${Math.min(10, displayData.length - visibleCount)})`; // UPDATED: Cap label at 10
+        } else {
+          loadMoreBtn.style.display = 'none';
+        }
+
+        visibleData.forEach(tx => {
+          const amount = parseFloat(tx.amount) || 0;
+          const isIncome = tx.type === 'income';
+
+          let displayDate = tx.date;
+          try { 
+            displayDate = parseTxDate(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); 
+          } catch(e){}
+
+          const div = document.createElement('div');
+          div.className = 'tx-item';
+          div.onclick = () => openEditModal(tx);
+          
+          const descText = tx.description ? ` • ${tx.description}` : '';
+
+          div.innerHTML = `
+            <div class="tx-info">
+              <h4>${tx.category}</h4>
+              <p>${displayDate}${descText}</p>
+            </div>
+            <div class="tx-val ${isIncome ? 'text-income' : 'text-expense'}">
+              ${isIncome ? '+' : '-'}${formatMoney(amount)}
+            </div>
+          `;
+          txList.appendChild(div);
+        });
+      }
+
       let fullIn = 0, fullOut = 0;
       displayData.forEach(tx => {
         const amt = parseFloat(tx.amount) || 0;
         if(tx.type === 'income') fullIn += amt; else fullOut += amt;
       });
 
-      // 2) Unfiltered Total Available Balance calculation across ALL user transactions
       let totalAllIncome = 0;
       let totalAllExpense = 0;
       transactions.forEach(tx => {
@@ -953,11 +969,9 @@
 
       document.getElementById('dom-income').textContent = formatMoney(fullIn);
       document.getElementById('dom-expense').textContent = formatMoney(fullOut);
-      // Available Balance stays static regardless of active filters!
       document.getElementById('dom-balance').textContent = formatMoney(totalAllIncome - totalAllExpense);
     }
 
-    // --- BUDGET PACING & GRAPH CALCULATION ---
     function renderBudgetAndPacing() {
       const now = new Date();
       const currentYear = now.getFullYear();
@@ -971,7 +985,7 @@
 
       transactions.forEach(tx => {
         if (tx.type === 'expense') {
-          const d = new Date(tx.date);
+          const d = parseTxDate(tx.date);
           if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
             const day = d.getDate();
             const amt = Number(tx.amount) || 0;
@@ -1054,18 +1068,17 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { family: 'Rajdhani', size: 11 } } },
+            legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { family: 'Rajdhani', size: 11, weight: '700' } } },
             tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ₱${ctx.raw}` } }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { family: 'Rajdhani', size: 10 } } },
-            y: { ticks: { font: { family: 'Rajdhani', size: 10 }, callback: (v) => '₱' + v } }
+            x: { grid: { display: false }, ticks: { font: { family: 'Rajdhani', size: 10, weight: '600' } } },
+            y: { ticks: { font: { family: 'Rajdhani', size: 10, weight: '600' }, callback: (v) => '₱' + v } }
           }
         }
       });
     }
 
-    // --- BUDGET MODAL HANDLERS ---
     const budgetModal = document.getElementById('budgetModalOverlay');
     document.getElementById('openBudgetModalBtn').onclick = () => {
       document.getElementById('monthlyBudgetInput').value = monthlyBudgetTarget || '';
@@ -1090,7 +1103,6 @@
       finally { btn.textContent = "SAVE BUDGET"; btn.disabled = false; }
     };
 
-    // --- CATEGORIES CRUD LOGIC ---
     typeSelect.addEventListener('change', updateCategoryDropdown);
     sidebarCatTypeSelect.addEventListener('change', renderSidebarCategories);
 
@@ -1155,7 +1167,6 @@
       } catch(e) { alert('Failed to delete category from database.'); }
     };
 
-    // --- TRANSACTION MODAL LOGIC ---
     const modalOverlay = document.getElementById('modalOverlay');
     const form = document.getElementById('txForm');
     
@@ -1183,7 +1194,7 @@
       document.getElementById('description').value = tx.description || ""; 
       
       try {
-        const d = new Date(tx.date);
+        const d = parseTxDate(tx.date);
         document.getElementById('date').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       } catch(e) {}
       

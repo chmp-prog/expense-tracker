@@ -33,7 +33,11 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-    body {
+    /* PREVENT ENTIRE BODY FROM SCROLLING */
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
       background-color: var(--bg-light);
       background-image: 
         linear-gradient(rgba(0, 102, 255, 0.05) 1px, transparent 1px),
@@ -41,10 +45,7 @@
       background-size: 30px 30px;
       display: flex;
       justify-content: center;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
       color: var(--text-main);
-      padding-top: var(--safe-area-top);
     }
 
     .app {
@@ -53,8 +54,8 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      height: -webkit-fill-available;
+      height: 100%;
+      height: 100dvh;
       overflow: hidden; 
       background: rgba(255, 255, 255, 0.5);
       backdrop-filter: blur(20px);
@@ -63,13 +64,21 @@
       box-shadow: 0 0 40px rgba(0,0,0,0.05);
     }
 
-    #auth-view { display: none; width: 100%; height: 100%; flex-direction: column; overflow-y: auto; padding-bottom: var(--safe-area-bottom); }
+    #auth-view { 
+      display: none; 
+      width: 100%; 
+      height: 100%; 
+      flex-direction: column; 
+      overflow-y: auto; 
+      padding-top: var(--safe-area-top);
+      padding-bottom: var(--safe-area-bottom); 
+    }
     
-    /* Layout fix for always-visible bottom nav bar */
     #app-view { 
       display: none; 
       width: 100%; 
       height: 100%; 
+      height: 100dvh;
       flex-direction: column; 
       overflow: hidden; 
       position: relative; 
@@ -87,16 +96,27 @@
     #register-form { display: none; }
 
     /* HEADER */
-    header { padding: 1rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 100%); display: flex; justify-content: space-between; align-items: center; border-bottom: var(--glass-border); z-index: 5; flex-shrink: 0; }
+    header { 
+      padding: 1rem 1.5rem; 
+      padding-top: calc(1rem + var(--safe-area-top));
+      background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.85) 100%); 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: var(--glass-border); 
+      z-index: 10; 
+      flex-shrink: 0; 
+    }
     header h1 { font-size: 1.3rem; color: var(--tech-blue); letter-spacing: 1px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     
     .brand-logo-wrapper { display: flex; align-items: center; gap: 10px; }
     .brand-svg-logo { width: 32px; height: 32px; filter: drop-shadow(0px 2px 4px rgba(0, 102, 255, 0.2)); }
 
-    /* TAB SCREENS & SCROLL AREA */
+    /* SCROLLABLE MIDDLE CONTAINER ONLY */
     .app-body { 
       flex: 1; 
       overflow-y: auto; 
+      -webkit-overflow-scrolling: touch;
       padding: 1rem; 
       display: flex; 
       flex-direction: column; 
@@ -260,19 +280,20 @@
     .logout-btn { width: 100%; background: rgba(230, 0, 35, 0.1); border: 1px solid var(--tech-red); color: var(--tech-red); padding: 0.85rem; font-size: 0.95rem; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; margin-top: 1rem; }
     .logout-btn:hover { background: var(--tech-red); color: white; }
 
-    /* PINNED BOTTOM NAV BAR - STRICTLY VISIBLE */
+    /* PERMANENTLY LOCKED BOTTOM TABS */
     .nav-tabs {
       flex-shrink: 0;
       height: calc(60px + var(--safe-area-bottom));
       padding-bottom: var(--safe-area-bottom);
       width: 100%;
-      background: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(12px);
       border-top: var(--glass-border);
       display: flex;
       justify-content: space-around;
       align-items: center;
-      z-index: 50;
+      z-index: 100;
+      position: relative;
     }
     .nav-btn {
       background: none;
@@ -326,7 +347,7 @@
       justify-content: center; 
       box-shadow: 0 8px 20px rgba(0, 102, 255, 0.4); 
       cursor: pointer; 
-      z-index: 10; 
+      z-index: 90; 
       transition: all 0.2s ease; 
       padding-bottom: 4px; 
     }
@@ -334,7 +355,7 @@
     .fab:active { transform: scale(0.92); }
 
     /* MODALS */
-    .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     .modal-overlay.active { opacity: 1; pointer-events: all; }
     .modal { background: var(--bg-light); width: 90%; max-width: 400px; padding: 2rem; border: var(--glass-border); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto;}
     .modal-overlay.active .modal { transform: scale(1); }
@@ -565,7 +586,7 @@
 
       </div>
 
-      <!-- BOTTOM NAVIGATION TABS -->
+      <!-- BOTTOM NAVIGATION TABS LOCKED IN PLACE -->
       <div class="nav-tabs">
         <button class="nav-btn active" onclick="switchTab('home-tab', this)">
           <span class="icon">🏠</span>
@@ -662,7 +683,7 @@
     let activeFilterMode = 'month';
     let activeTypeFilterMode = 'all';
 
-    let visibleCount = 10; // UPDATED: 10 per page
+    let visibleCount = 10; 
 
     const authView = document.getElementById('auth-view');
     const appView = document.getElementById('app-view');
@@ -746,7 +767,7 @@
 
     function setPresetFilter(mode, btnEl) {
       activeFilterMode = mode;
-      visibleCount = 10; // UPDATED: Reset to 10
+      visibleCount = 10;
       document.querySelectorAll('#timeframePresets .filter-chip').forEach(chip => chip.classList.remove('active'));
       btnEl.classList.add('active');
 
@@ -761,19 +782,19 @@
 
     function setTypeFilter(mode, btnEl) {
       activeTypeFilterMode = mode;
-      visibleCount = 10; // UPDATED: Reset to 10
+      visibleCount = 10;
       document.querySelectorAll('#typePresets .filter-chip').forEach(chip => chip.classList.remove('active'));
       btnEl.classList.add('active');
       renderApp();
     }
 
     function resetAndRender() {
-      visibleCount = 10; // UPDATED: Reset to 10
+      visibleCount = 10;
       renderApp();
     }
 
     function loadMoreTransactions() {
-      visibleCount += 10; // UPDATED: Load 10 more
+      visibleCount += 10;
       renderApp();
     }
 
@@ -920,7 +941,7 @@
 
         if (displayData.length > visibleCount) {
           loadMoreBtn.style.display = 'block';
-          loadMoreBtn.textContent = `LOAD MORE (${Math.min(10, displayData.length - visibleCount)})`; // UPDATED: Cap label at 10
+          loadMoreBtn.textContent = `LOAD MORE (${Math.min(10, displayData.length - visibleCount)})`;
         } else {
           loadMoreBtn.style.display = 'none';
         }

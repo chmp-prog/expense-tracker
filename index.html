@@ -173,6 +173,32 @@
     .loader { text-align: center; padding: 3rem 0; color: var(--tech-blue); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
     #auth-error { color: var(--tech-red); text-align: center; font-size: 0.9rem; font-weight: 700; margin-top: 1rem; }
+    /* HIGH-VISIBILITY LOAD MORE BUTTON */
+    .load-more-btn {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+      background: rgba(0, 102, 255, 0.1);
+      border: 2px solid var(--tech-blue);
+      color: var(--tech-blue);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 4px 12px rgba(0, 102, 255, 0.1);
+      display: block;
+    }
+    .load-more-btn:hover, 
+    .load-more-btn:active {
+      background: var(--tech-blue);
+      color: #FFFFFF;
+      box-shadow: 0 6px 18px rgba(0, 102, 255, 0.35);
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
